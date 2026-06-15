@@ -1,4 +1,4 @@
-﻿Console.Writeusing System;
+﻿using System;
 
 class Program
 {
@@ -65,4 +65,4 @@ class Program
             }
         }
     }
-}Line("Hello, World!");
+}
