@@ -6,12 +6,20 @@
     DateTime horaInicio;
     bool sesionActiva = false;
 
+    Console.Clear();
+    Console.ForegroundColor = ConsoleColor.Cyan;
+    Console.WriteLine("==============================================");
+    Console.WriteLine("        BIENVENIDO A JAGUARSECURITY V.1       ");
+    Console.WriteLine("==============================================");
+    Console.ResetColor();
+    Console.WriteLine("Para comenzar, por favor registre sus datos.\n");
+
     while (!sesionActiva)
     {
-        Console.Write("Ingrese su nombre: ");
+        Console.Write(">> Ingrese su nombre: ");
         nombre = Console.ReadLine()!.Trim();// .Trim() quita espacios accidentales al inicio y final
 
-        Console.Write("Ingrese su apellido: ");
+        Console.Write(">> Ingrese su apellido: ");
         apellido = Console.ReadLine()!.Trim();
 
         bool nombreValido = true;
@@ -39,14 +47,20 @@
 
         if (nombre != "" && apellido != "" && nombreValido && apellidoValido)
         {
+            Console.Clear();
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine("¡Bienvenido, " + nombre + "! Proceda a seleccionar su ubicación.");
+            Console.ResetColor();
             // Validar entrada UAM
             do
             {
-                Console.WriteLine("\nEntrada UAM");
+                Console.WriteLine("\n--- Selección de Entrada UAM ---");
                 Console.WriteLine("1. Portón Principal");
                 Console.WriteLine("2. Portón Sur");
                 Console.WriteLine("3. Portón Norte");
-                Console.Write("Seleccione una entrada (1-3): ");
+                Console.ForegroundColor = ConsoleColor.Blue;
+                Console.Write("\nSeleccione una entrada (1-3): ");
+                Console.ResetColor();
 
                 /*Mejora de lider: Validar que la entrada sea un número entero
                  * si el guardia ingresa un letra (ej:A), el programa no se bloquea y muestra un mensaje de error */
@@ -71,7 +85,7 @@
                         break;
 
                     default:
-                        Console.WriteLine("\nError: Entrada inválida. Seleccione una opción entre 1 y 3.\n");
+                        Console.WriteLine(">> Error: Opción inválida. Intente de nuevo.");
                         break;
                 }
 
@@ -81,14 +95,22 @@
             sesionActiva = true;
 
             Console.Clear(); // Limpiar pantalla para mostrar solo la información relevante después de iniciar sesión
-            Console.WriteLine("\n[OK] Autenticación exitosa...");
-            Console.WriteLine("Operador: " + nombre + " " + apellido);
-            Console.WriteLine("Hora exacta: " + horaInicio);
-            Console.WriteLine("Ubicación: " + nomEntrada);
+            Console.ForegroundColor = ConsoleColor.Magenta;
+            Console.WriteLine("**********************************************");
+            Console.WriteLine("          SESIÓN INICIADA CORRECTAMENTE       ");
+            Console.WriteLine("**********************************************");
+            Console.ResetColor();
+            Console.WriteLine($"Operador  : {nombre} {apellido}");
+            Console.WriteLine($"Ubicación : {nomEntrada}");
+            Console.WriteLine($"Fecha y Hora: {horaInicio.ToString("dd/MM/yyyy - HH:mm:ss")}");
+            Console.WriteLine("**********************************************");
         }
         else
         {
-            Console.WriteLine("\nError: El nombre y apellido solo pueden contener letras. Intente nuevamente.\n");
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine("\n>> Error: Datos inválidos.\n");
+            Console.ResetColor();
         }
     }
 }
+IniciarSesionGuardia();
