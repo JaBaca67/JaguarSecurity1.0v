@@ -34,3 +34,4 @@ void BuscarVehiculo(string[] placa, string[] nombreConductor,
         Console.WriteLine("\nNo se encontró ningún vehículo con esa placa.");
     }
 }
+.,.,.,.,.,.,..,
