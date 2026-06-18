@@ -37,6 +37,7 @@ void Main()
             case 4:
                 Console.Clear();
                 AnimacionCargando("MOSTRAR REGISTROS DE LA SESIÓN ACTUAL");
+                
                 break;
             case 5:
                 Console.Clear();
@@ -406,7 +407,7 @@ string LeerPlaca()
 {
     while (true)
     {
-        Console.Write("\nPlaca del vehículo (Máx 15 caracteres), ej:M123456 o M 123456 ");
+        Console.Write("\nPlaca del vehículo (Máx 15 caracteres), ej:M123456 o M 123456: ");
         string placa = Console.ReadLine()!;
         if (placa != "" && placa.Length <= 15)
             return placa;
@@ -463,7 +464,7 @@ string LeerCedula()
 {
     while (true)
     {
-        Console.Write("/nCédula (Escribir los 14 caracteres o de forma obligatoria escribir N/A para omitir): ");
+        Console.Write("\nCédula (Escribir los 14 caracteres o de forma obligatoria escribir N/A para omitir): ");
         string cedula = Console.ReadLine()!;
 
         if (cedula == "N/A")
@@ -493,6 +494,8 @@ string LeerOpcional(string nombreCampo)
         Console.ResetColor();
     }
 }
+
+
 
 struct Vehiculo
 {
