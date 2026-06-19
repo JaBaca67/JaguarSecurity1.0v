@@ -1,12 +1,8 @@
-﻿//====================================
-// BÚSQUEDA RÁPIDA DE VEHÍCULO
-//====================================
-void BuscarVehiculo(string[] placa, string[] nombreConductor,
-                    string[] tipoVehiculo, string[] horaEntrada,
-                    int contador)
+﻿void BuscarVehiculo()
 {
     Console.Clear();
     Console.WriteLine("===== BÚSQUEDA RÁPIDA DE VEHÍCULO =====");
+
     Console.Write("Ingrese la placa del vehículo: ");
     string placaBuscada = Console.ReadLine()!.ToUpper();
 
@@ -14,15 +10,17 @@ void BuscarVehiculo(string[] placa, string[] nombreConductor,
 
     for (int i = 0; i < contador; i++)
     {
-        if (placa[i].ToUpper() == placaBuscada)
+        if (vehiculos[i].placa.ToUpper() == placaBuscada)
         {
             Console.WriteLine("\nVEHÍCULO ENCONTRADO");
-            Console.WriteLine("--------------------------------");
-            Console.WriteLine($"Placa: {placa[i]}");
-            Console.WriteLine($"Conductor: {nombreConductor[i]}");
-            Console.WriteLine($"Tipo de vehículo: {tipoVehiculo[i]}");
-            Console.WriteLine($"Hora de entrada: {horaEntrada[i]}");
-            Console.WriteLine("--------------------------------");
+            Console.WriteLine("================================");
+            Console.WriteLine($"Tipo: {vehiculos[i].tipo}");
+            Console.WriteLine($"Placa: {vehiculos[i].placa}");
+            Console.WriteLine($"Conductor: {vehiculos[i].conductor}");
+            Console.WriteLine($"Cédula: {vehiculos[i].cedula}");
+            Console.WriteLine($"Destino: {vehiculos[i].destino}");
+            Console.WriteLine($"Detalles: {vehiculos[i].detalles}");
+            Console.WriteLine("================================");
 
             encontrado = true;
             break;
@@ -33,5 +31,7 @@ void BuscarVehiculo(string[] placa, string[] nombreConductor,
     {
         Console.WriteLine("\nNo se encontró ningún vehículo con esa placa.");
     }
+
+    Console.WriteLine("\nPresione cualquier tecla para continuar...");
+    Console.ReadKey();
 }
-.,.,.,.,.,.,..,
