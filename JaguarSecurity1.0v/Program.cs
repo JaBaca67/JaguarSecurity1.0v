@@ -33,13 +33,14 @@ void Main()
             case 3:
                 Console.Clear();
                 AnimacionCargando("BÚSQUEDA RÁPIDA DE VEHÍCULO");
+                BuscarVehiculo();
                 //Aquí se podría poner lo de eliminar un registro específico, 
                 break;
             case 4:
                 Console.Clear();
                 AnimacionCargando("MOSTRAR REGISTROS DE LA SESIÓN ACTUAL");
                 MostrarRegistros();
-                
+
                 break;
             case 5:
                 Console.Clear();
@@ -215,7 +216,7 @@ int menu()
         Console.WriteLine("2. EDITAR VEHICULOS REGISTRADOS");
         Console.WriteLine("3. BÚSQUEDA RÁPIDA DE VEHÍCULO");
         Console.WriteLine("4. MOSTRAR REGISTROS DE LA SESIÓN ACTUAL");
-        Console.WriteLine("5. MÓDULO DE AUDITORÍA(REVISIÓN DE SESIONES ANTERIORES)");
+        Console.WriteLine("5. MÓDULO DE AUDITORÍA (REVISIÓN DE SESIONES ANTERIORES)");
         Console.WriteLine("6. CERRAR TURNO Y GENERAR REPORTES (.CSV)");
         Console.WriteLine("7. SALIR DEL PROGRAMA");
         Console.WriteLine("\n────────────────────────────────────────────────────────────────────");
@@ -293,7 +294,7 @@ void RegistroVehiculo()
                 break;
             }
 
-            Console.WriteLine($"\nRegistro de Vehículo #{i + 1} de 1000 ");
+            Console.WriteLine($"\nRegistro de Vehículo #{i + 1}");
 
             vehiculos[i].tipo = SeleccionarTipo();
             vehiculos[i].placa = LeerPlaca();
@@ -321,58 +322,6 @@ void RegistroVehiculo()
         }
     }
 }
-
-void EditarVehiculo()
-{
-    Console.Clear();
-    Console.WriteLine(" Modo edición de Vehículos registrados ");
-    if (i == 0)
-    {
-        Console.WriteLine("No hay vehículos registrados.");
-        return;
-    }
-
-    Console.WriteLine($"Vehículos registrados: {i}");
-    for (int r = 0; r < i; r++)
-    {
-        Console.WriteLine($"[{r + 1}] Placa: {vehiculos[r].placa}  Conductor: {vehiculos[r].conductor}");
-    }
-
-    int num = 0;
-    while (true)
-    {
-        Console.Write($"Ingrese el número de vehículo a modificar (1 al {i}) o escriba N (No), para salir del modo edición: ");
-        string entrada = Console.ReadLine()!;
-
-        if (entrada == "N")
-        {
-            return;
-        }
-
-        if (int.TryParse(entrada, out num) && num > 0 && num <= i)
-            break;
-
-        Console.ForegroundColor = ConsoleColor.Red;
-        Console.WriteLine("Valor inválido por favor ingrese N o seleccione el número entero del vehículo correspondiente a editar.");
-        Console.ResetColor();
-    }
-
-    int pos = num - 1;
-    Console.WriteLine($"Modificando Vehículo #{num} (Actual: {vehiculos[pos].placa})");
-    Console.WriteLine("---------------------------------------------");
-
-    vehiculos[pos].tipo = SeleccionarTipo();
-    vehiculos[pos].placa = LeerPlaca();
-    vehiculos[pos].conductor = LeerConductor();
-    vehiculos[pos].cedula = LeerCedula();
-    vehiculos[pos].destino = LeerOpcional("Nuevo Destino");
-    vehiculos[pos].detalles = LeerOpcional("Nuevos Detalles");
-
-    Console.ForegroundColor = ConsoleColor.Green;
-    Console.WriteLine("¡Vehículo modificado correctamente!");
-    Console.ResetColor();
-}
-
 
 string SeleccionarTipo()
 {
@@ -496,6 +445,103 @@ string LeerOpcional(string nombreCampo)
         Console.ResetColor();
     }
 }
+
+//OP MENU 2: EDICIÓN DE VEHÍCULOS REGISTRADOS
+
+void EditarVehiculo()
+{
+    Console.Clear();
+    Console.WriteLine(" Modo edición de Vehículos registrados ");
+    if (i == 0)
+    {
+        Console.WriteLine("No hay vehículos registrados.");
+        return;
+    }
+
+    Console.WriteLine($"Vehículos registrados: {i}");
+    for (int r = 0; r < i; r++)
+    {
+        Console.WriteLine($"[{r + 1}] Placa: {vehiculos[r].placa}  Conductor: {vehiculos[r].conductor}");
+    }
+
+    int num = 0;
+    while (true)
+    {
+        Console.Write($"Ingrese el número de vehículo a modificar (1 al {i}) o escriba N (No), para salir del modo edición: ");
+        string entrada = Console.ReadLine()!;
+
+        if (entrada == "N")
+        {
+            return;
+        }
+
+        if (int.TryParse(entrada, out num) && num > 0 && num <= i)
+            break;
+
+        Console.ForegroundColor = ConsoleColor.Red;
+        Console.WriteLine("Valor inválido por favor ingrese N o seleccione el número entero del vehículo correspondiente a editar.");
+        Console.ResetColor();
+    }
+
+    int pos = num - 1;
+    Console.WriteLine($"Modificando Vehículo #{num} (Actual: {vehiculos[pos].placa})");
+    Console.WriteLine("---------------------------------------------");
+
+    vehiculos[pos].tipo = SeleccionarTipo();
+    vehiculos[pos].placa = LeerPlaca();
+    vehiculos[pos].conductor = LeerConductor();
+    vehiculos[pos].cedula = LeerCedula();
+    vehiculos[pos].destino = LeerOpcional("Nuevo Destino");
+    vehiculos[pos].detalles = LeerOpcional("Nuevos Detalles");
+
+    Console.ForegroundColor = ConsoleColor.Green;
+    Console.WriteLine("¡Vehículo modificado correctamente!");
+    Console.ResetColor();
+}
+
+
+//OP MENU 3: BÚSQUEDA RÁPIDA DE VEHÍCULO
+//====================================
+// BÚSQUEDA RÁPIDA DE VEHÍCULO
+//====================================
+void BuscarVehiculo()
+{
+    Console.Clear();
+    Console.WriteLine("===== BÚSQUEDA RÁPIDA DE VEHÍCULO =====");
+
+    Console.Write("Ingrese la placa del vehículo: ");
+    string placaBuscada = Console.ReadLine()!.ToUpper();
+
+    bool encontrado = false;
+
+    for (int j = 0; j < i; j++)
+    {
+        // Validamos que el vehículo no sea nulo y comparamos la placa
+        if (vehiculos[j].placa != null && vehiculos[j].placa.ToUpper() == placaBuscada)
+        {
+            Console.WriteLine("\nVEHÍCULO ENCONTRADO");
+            Console.WriteLine("================================");
+            Console.WriteLine($"Tipo: {vehiculos[j].tipo}");
+            Console.WriteLine($"Placa: {vehiculos[j].placa}");
+            Console.WriteLine($"Conductor: {vehiculos[j].conductor}");
+            Console.WriteLine($"Cédula: {vehiculos[j].cedula}");
+            Console.WriteLine($"Destino: {vehiculos[j].destino}");
+            Console.WriteLine($"Detalles: {vehiculos[j].detalles}");
+            Console.WriteLine("================================");
+
+            encontrado = true;
+            break; // Detiene la búsqueda al encontrarlo
+        }
+    }
+
+    if (!encontrado)
+    {
+        Console.ForegroundColor = ConsoleColor.Red;
+        Console.WriteLine("\nNo se encontró ningún vehículo con esa placa en la sesión actual.");
+        Console.ResetColor();
+    }
+}
+
 
 //OPCION MENU 4: MOSTRAR REGISTROS DE LA SESIÓN ACTUAL
 // ==========================================
