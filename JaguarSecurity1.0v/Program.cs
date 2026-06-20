@@ -18,7 +18,6 @@ void Main()
 
         do
         {
-
             // Llamamos a la función menu y guardamos el resultado en 'op'
             op = menu();
 
@@ -390,6 +389,7 @@ void RegistroVehiculo()
             vehiculos[i].cedula = LeerCedula();
             vehiculos[i].destino = LeerOpcional("Destino");
             vehiculos[i].detalles = LeerOpcional("Detalles del conductor o vehículo");
+            vehiculos[i].horaIngreso = DateTime.Now;//Se guarda la hora exacta de ese vehiculo
 
             i++;
             Console.ForegroundColor = ConsoleColor.Green;
@@ -654,42 +654,38 @@ void MostrarRegistros()
 
     Console.ForegroundColor = ConsoleColor.DarkGray;
     Console.WriteLine("  Nota: Los textos muy largos se muestran resumidos para mantener la estabilidad visual de la tabla.");
-    Console.WriteLine("        El registro completo se almacena de forma íntegra en el sistema.\n");
     Console.ResetColor();
     // Encabezado de la tabla estructurada (Ancho total optimizado)
     Console.ForegroundColor = ConsoleColor.Yellow;
-    Console.WriteLine("╔════╦══════════════╦══════════════════╦════════════════════════╦════════════════╦══════════════════════╦═══════════════════════════╗");
-    Console.WriteLine("║ Nº ║ Placa        ║ Tipo             ║ Conductor              ║ Cédula         ║ Destino              ║ Detalles                  ║");
-    Console.WriteLine("╠════╬══════════════╬══════════════════╬════════════════════════╬════════════════╬══════════════════════╬═══════════════════════════╣");
+    // Agregamos el espacio para "Hora" (8 caracteres)
+    Console.WriteLine("╔════╦══════════╦══════════════╦══════════════════╦══════════════════════╦══════════════╦══════════════════╦════════════════════╗");
+    Console.WriteLine("║ Nº ║ Hora     ║ Placa        ║ Tipo             ║ Conductor            ║ Cédula       ║ Destino          ║ Detalles           ║");
+    Console.WriteLine("╠════╬══════════╬══════════════╬══════════════════╬══════════════════════╬══════════════╬══════════════════╬════════════════════╣");
     Console.ResetColor();
 
     for (int r = 0; r < i; r++)
     {
-        // Alinear y limitar el texto para cada columna usando los nuevos anchos seguros
         string num = (r + 1).ToString().PadRight(2);
+
+        // Formateamos la hora para que siempre ocupe exactamente 8 caracteres (ej: 14:30:00)
+        string hora = vehiculos[r].horaIngreso.ToString("HH:mm:ss").PadRight(8);
 
         string placa = vehiculos[r].placa.Length > 12 ? vehiculos[r].placa.Substring(0, 12) : vehiculos[r].placa.PadRight(12);
         string tipo = vehiculos[r].tipo.Length > 16 ? vehiculos[r].tipo.Substring(0, 16) : vehiculos[r].tipo.PadRight(16);
-        string cond = vehiculos[r].conductor.Length > 22 ? vehiculos[r].conductor.Substring(0, 22) : vehiculos[r].conductor.PadRight(22);
-        string ced = vehiculos[r].cedula.Length > 14 ? vehiculos[r].cedula.Substring(0, 14) : vehiculos[r].cedula.PadRight(14);
-        string dest = vehiculos[r].destino.Length > 20 ? vehiculos[r].destino.Substring(0, 20) : vehiculos[r].destino.PadRight(20);
+        string cond = vehiculos[r].conductor.Length > 20 ? vehiculos[r].conductor.Substring(0, 20) : vehiculos[r].conductor.PadRight(20);
+        string ced = vehiculos[r].cedula.Length > 12 ? vehiculos[r].cedula.Substring(0, 12) : vehiculos[r].cedula.PadRight(12);
+        string dest = vehiculos[r].destino.Length > 16 ? vehiculos[r].destino.Substring(0, 16) : vehiculos[r].destino.PadRight(16);
+        string det = vehiculos[r].detalles.Length > 18 ? vehiculos[r].detalles.Substring(0, 18) : vehiculos[r].detalles.PadRight(18);
 
-        // Nueva columna que faltaba por agregarse en la tabla.
-        string det = vehiculos[r].detalles.Length > 25 ? vehiculos[r].detalles.Substring(0, 25) : vehiculos[r].detalles.PadRight(25);
-
-        // Imprimir la fila perfectamente alineada
-        Console.WriteLine($"║ {num} ║ {placa} ║ {tipo} ║ {cond} ║ {ced} ║ {dest} ║ {det} ║");
+        Console.WriteLine($"║ {num} ║ {hora} ║ {placa} ║ {tipo} ║ {cond} ║ {ced} ║ {dest} ║ {det} ║");
     }
 
-    // Pie de la tabla
     Console.ForegroundColor = ConsoleColor.Yellow;
-    Console.WriteLine("╚════╩══════════════╩══════════════════╩════════════════════════╩════════════════╩══════════════════════╩═══════════════════════════╝");
-    // Mostrar el total de vehículos registrados
+    Console.WriteLine("╚════╩══════════╩══════════════╩══════════════════╩══════════════════════╩══════════════╩══════════════════╩════════════════════╝");
     Console.ForegroundColor = ConsoleColor.Green;
     Console.WriteLine($"\nTotal de vehículos registrados: {i}");
     Console.ResetColor();
 }
-
 // =====================================================================
 //   OPCIÓN 5: MÓDULO DE AUDITORÍA (REVISIÓN DE SESIONES ANTERIORES)
 // =====================================================================
@@ -698,16 +694,17 @@ void ModuloAuditoria()
     while (true)
     {
         Console.Clear();
-        Console.Write("\x1b[3J");
+        Console.Write("\x1b[3J"); // Limpiamos el rastro del scroll
         Console.ForegroundColor = ConsoleColor.Cyan;
         Console.WriteLine("╔══════════════════════════════════════════════════════════════════════╗");
         Console.WriteLine("║     MÓDULO DE AUDITORÍA: CONTROL DE SESIONES ANTERIORES UAM          ║");
         Console.WriteLine("╚══════════════════════════════════════════════════════════════════════╝\n");
         Console.ResetColor();
 
-        //En arreglo almacenamos los archivos csv.
         string rutaActual = Directory.GetCurrentDirectory();
         string[] archivosGuardados = Directory.GetFiles(rutaActual, "*.csv");
+
+        // Ordenamos de más reciente a más antiguo
         Array.Sort(archivosGuardados, (a, b) => File.GetLastWriteTime(b).CompareTo(File.GetLastWriteTime(a)));
 
         if (archivosGuardados.Length == 0)
@@ -726,14 +723,12 @@ void ModuloAuditoria()
             Console.WriteLine($" [{idx + 1}] {nombreLimpio}");
         }
 
-        //Opcion para volver al menu principal
         int opcionSalir = archivosGuardados.Length + 1;
         Console.ForegroundColor = ConsoleColor.DarkGray;
         Console.WriteLine($" [{opcionSalir}] Volver al Menú Principal");
         Console.ResetColor();
         Console.WriteLine("────────────────────────────────────────────────────────────────────");
 
-        // Validamos la seleccion del usuario
         int seleccion;
         Console.ForegroundColor = ConsoleColor.Yellow;
         Console.Write($" >> Digite una opción (1-{opcionSalir}): ");
@@ -746,19 +741,17 @@ void ModuloAuditoria()
 
             string rutaArchivoElegido = archivosGuardados[seleccion - 1];
 
-            // Limpiamos la pantalla explícitamente antes de cargar el nuevo archivo
             Console.Clear();
             Console.Write("\x1b[3J");
 
             Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine("=====================================================================================================");
+            Console.WriteLine("===============================================================================================================");
             Console.WriteLine($" VISUALIZANDO HISTORIAL DE AUDITORÍA: {Path.GetFileName(rutaArchivoElegido).ToUpper()}");
-            Console.WriteLine("=====================================================================================================");
+            Console.WriteLine("===============================================================================================================");
             Console.ResetColor();
 
             string[] filasHistorial = File.ReadAllLines(rutaArchivoElegido);
 
-            //Validacion de que el archivo no este vacio, por si acaso
             if (filasHistorial.Length == 0)
             {
                 Console.ForegroundColor = ConsoleColor.Yellow;
@@ -767,29 +760,86 @@ void ModuloAuditoria()
             }
             else
             {
-                Console.ForegroundColor = ConsoleColor.White;
+                // Definimos la plantilla de anchos fijos para la tabla de vehiculos nueva
+                // Ejemplo de como quedaria la tabla: Nº(4) | Hora(10) | Placa(10) | Tipo(18) | Conductor(20) | Cédula(14) | Destino(15) | Detalles(15)
+                // Los números negativos significan alineación a la izquierda
+                string formatoTabla = " │ {0,-3} │ {1,-8} │ {2,-9} │ {3,-17} │ {4,-19} │ {5,-13} │ {6,-14} │ {7,-14} │";
+
                 foreach (string fila in filasHistorial)
                 {
-                    // Si detecta los separadores decorativos del reporte los pinta en la consola
+                    if (string.IsNullOrWhiteSpace(fila))
+                    {
+                        Console.WriteLine();
+                        continue;
+                    }
+
+                    // Separamos por punto y coma
+                    string[] celdas = fila.Contains(";") ? fila.Split(';') : fila.Split(',');
+
+                    // 1. Pintamos solo si es un titulo de color cyan
                     if (fila.StartsWith("===") || fila.StartsWith("---"))
                     {
                         Console.ForegroundColor = ConsoleColor.Cyan;
-                        Console.WriteLine($"\n{fila}");
-                        Console.ForegroundColor = ConsoleColor.White;
+                        Console.WriteLine(fila);
+                        Console.ResetColor();
                     }
-                    // Mantiene los saltos de linea
-                    else if (string.IsNullOrWhiteSpace(fila))
+                    // 2. Si es la cabecera oficial de las columnas de vehículos entonces:
+                    else if (celdas[0].Trim() == "Nº" || celdas[0].Trim() == "N")
                     {
-                        Console.WriteLine();
+                        Console.ForegroundColor = ConsoleColor.Yellow;
+                        Console.WriteLine(" ┌─────┬──────────┬───────────┬───────────────────┬─────────────────────┬───────────────┬────────────────┬────────────────┐");
+                        Console.WriteLine(string.Format(formatoTabla, "Nº", "Hora", "Placa", "Tipo Vehículo", "Conductor", "Cédula", "Destino", "Detalles"));
+                        Console.WriteLine(" ├─────┼──────────┼───────────┼───────────────────┼─────────────────────┼───────────────┼────────────────┼────────────────┤");
+                        Console.ResetColor();
                     }
+                    // 3. Si la fila empieza con un numero, sabemos que el registro del vehiculo
+                    else if (celdas.Length >= 8 && int.TryParse(celdas[0], out _))
+                    {
+                        // Aca se recortan los textos para que alcancen
+                        string num = celdas[0].Trim();
+                        string hora = celdas[1].Length > 8 ? celdas[1].Substring(0, 8) : celdas[1].Trim();
+                        string placa = celdas[2].Length > 9 ? celdas[2].Substring(0, 9) : celdas[2].Trim();
+                        string tipo = celdas[3].Length > 17 ? celdas[3].Substring(0, 17) : celdas[3].Trim();
+                        string conductor = celdas[4].Length > 19 ? celdas[4].Substring(0, 19) : celdas[4].Trim();
+                        string cedula = celdas[5].Length > 13 ? celdas[5].Substring(0, 13) : celdas[5].Trim();
+                        string destino = celdas[6].Length > 14 ? celdas[6].Substring(0, 14) : celdas[6].Trim();
+                        string detalles = celdas[7].Length > 14 ? celdas[7].Substring(0, 14) : celdas[7].Trim();
+
+                        // Imprimimos la fila de datos
+                        Console.ForegroundColor = ConsoleColor.White;
+                        Console.WriteLine(string.Format(formatoTabla, num, hora, placa, tipo, conductor, cedula, destino, detalles));
+                        Console.ResetColor();
+
+                        // Si es el último vehículo, se cierra la tabla
+                        int indiceSiguiente = Array.IndexOf(filasHistorial, fila) + 1;
+                        if (indiceSiguiente < filasHistorial.Length)
+                        {
+                            string sigFila = filasHistorial[indiceSiguiente];
+                            string[] sigCeldas = sigFila.Contains(";") ? sigFila.Split(';') : sigFila.Split(',');
+                            if (string.IsNullOrWhiteSpace(sigFila) || !int.TryParse(sigCeldas[0], out _))
+                            {
+                                Console.ForegroundColor = ConsoleColor.Yellow;
+                                Console.WriteLine(" └─────┴──────────┴───────────┴───────────────────┴─────────────────────┴───────────────┴────────────────┴────────────────┘");
+                                Console.ResetColor();
+                            }
+                        }
+                    }
+                    // 4. Datos generales del guarda
                     else
                     {
-                        //Aqui remplazamos los ; por │ para que se vea mas bonito :D
-                        string filaLimpia = fila.Replace(";", " │ ").Replace(",", " │ ");
-                        Console.WriteLine(" " + filaLimpia);
+                        Console.ForegroundColor = ConsoleColor.White;
+                        if (celdas.Length > 1)
+                        {
+                            // Buscamos eliminar los puntos y comas feos
+                            Console.WriteLine($"  {celdas[0].Trim()} {celdas[1].Trim()}");
+                        }
+                        else
+                        {
+                            Console.WriteLine($"  {fila.Trim()}");
+                        }
+                        Console.ResetColor();
                     }
                 }
-                Console.ResetColor();
             }
 
             Console.WriteLine("Presione cualquier tecla para regresar al listado numérico de auditoría...");
@@ -829,7 +879,7 @@ bool CerrarTurnoYGenerarReporte()
         return false;
     }
 
-    // === 2. CONFIRMACIÓN DEL USUARIO (Doble check) ===
+    //Confirmacion para el usuario
     Console.ForegroundColor = ConsoleColor.Yellow;
     Console.WriteLine("  [?] ATENCIÓN: Está a punto de cerrar su turno actual.");
     Console.WriteLine("      Esto exportará la bitácora de vehículos y cerrará su sesión de usuario.");
@@ -846,7 +896,6 @@ bool CerrarTurnoYGenerarReporte()
         Console.ResetColor();
         return false;
     }
-
 
     // Aca se captura la hora salida del guardia y calculamos el tiempo trabajado
     int indiceActual = totalLogins - 1;
@@ -887,11 +936,13 @@ bool CerrarTurnoYGenerarReporte()
 
         // Bitacora de vehciulos registrados
         lineasCsv.Add("--- II. BITÁCORA DE VEHÍCULOS INGRESADOS ---");
-        lineasCsv.Add("Nº;Placa;Tipo de Vehículo;Conductor;Cédula;Destino;Detalles Adicionales");
+        // Nueva columna
+        lineasCsv.Add("Nº;Hora;Placa;Tipo de Vehículo;Conductor;Cédula;Destino;Detalles Adicionales");
 
         for (int r = 0; r < i; r++)
         {
             //Remplazar los ; por que se veian horribles
+            string horaStr = vehiculos[r].horaIngreso.ToString("HH:mm:ss");       
             string placa = vehiculos[r].placa.Replace(";", "-");
             string tipo = vehiculos[r].tipo.Replace(";", "-");
             string conductor = vehiculos[r].conductor.Replace(";", "-");
@@ -899,7 +950,8 @@ bool CerrarTurnoYGenerarReporte()
             string destino = vehiculos[r].destino.Replace(";", "-");
             string detalles = vehiculos[r].detalles.Replace(";", "-");
 
-            lineasCsv.Add($"{r + 1};{placa};{tipo};{conductor};{cedula};{destino};{detalles}");
+            // Se agrego la variable hora al csv
+            lineasCsv.Add($"{r + 1};{horaStr};{placa};{tipo};{conductor};{cedula};{destino};{detalles}");
         }
         lineasCsv.Add("");
 
@@ -917,7 +969,7 @@ bool CerrarTurnoYGenerarReporte()
         for (int p = 0; p < 6; p++)
         {
             Console.Write(".");
-            Thread.Sleep(200); 
+            Thread.Sleep(200);
         }
         Console.ForegroundColor = ConsoleColor.Green;
         Console.WriteLine(" [ OK ]");
@@ -928,7 +980,7 @@ bool CerrarTurnoYGenerarReporte()
         for (int p = 0; p < 6; p++)
         {
             Console.Write(".");
-            Thread.Sleep(200); 
+            Thread.Sleep(200);
         }
         Console.ForegroundColor = ConsoleColor.Green;
         Console.WriteLine(" [ OK ]");
@@ -969,7 +1021,7 @@ bool CerrarTurnoYGenerarReporte()
         Console.ForegroundColor = ConsoleColor.Green;
         Console.WriteLine("\n[ SESIÓN FINALIZADA CON ÉXITO ]");
         Console.ResetColor();
-        Thread.Sleep(1000); 
+        Thread.Sleep(1000);
 
         return true;//Devolver true para indicar que el turno se cerro
 
@@ -1002,4 +1054,5 @@ struct Vehiculo
     public string cedula;
     public string destino;
     public string detalles;
+    public DateTime horaIngreso; //Nueva variable(Se me habia olvidado) :D
 }
