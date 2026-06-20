@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Runtime.ConstrainedExecution;
 using System.Text;
+using System.Threading;
 
 Vehiculo[] vehiculos = new Vehiculo[1000];
 Guardia[] guardias = new Guardia[100]; // Capacidad para 100 turnos
@@ -17,7 +18,7 @@ void Main()
 
         do
         {
-                        
+
             // Llamamos a la función menu y guardamos el resultado en 'op'
             op = menu();
 
@@ -82,7 +83,9 @@ void Main()
             // Si no eligió salir, hacemos una pequeña pausa para ver el mensaje antes de volver a pintar el menú
             if (op != 7)
             {
-                Console.WriteLine("Presione cualquier tecla para continuar...");
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine("\nPresione cualquier tecla para continuar...");
+                Console.ResetColor();
                 Console.ReadKey();
             }
 
@@ -350,7 +353,7 @@ void AnimacionCargando(string mensaje)
     Console.ResetColor();
     System.Threading.Thread.Sleep(400);
 }
-
+//OPCION 1 MENU 1: REGISTRAR INGRESO VEHICULAR SELECTIVO
 void RegistroVehiculo()
 {
     string continuar = "S";
@@ -615,7 +618,7 @@ void BuscarVehiculo()
             Console.WriteLine("================================");
 
             encontrado = true;
-            break; 
+            break;
         }
     }
 
@@ -712,8 +715,6 @@ void ModuloAuditoria()
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine(" >> No se han encontrado registros de sesiones anteriores (.CSV) en el sistema.");
             Console.ResetColor();
-            Console.WriteLine("\nPresione cualquier tecla para regresar al menú principal...");
-            Console.ReadKey();
             break;
         }
 
@@ -791,7 +792,6 @@ void ModuloAuditoria()
                 Console.ResetColor();
             }
 
-            Console.WriteLine("\n=====================================================================================================");
             Console.WriteLine("Presione cualquier tecla para regresar al listado numérico de auditoría...");
             Console.ReadKey();
         }
@@ -828,6 +828,25 @@ bool CerrarTurnoYGenerarReporte()
         //Evitamos que se cierre el turno cuando no hay registros
         return false;
     }
+
+    // === 2. CONFIRMACIÓN DEL USUARIO (Doble check) ===
+    Console.ForegroundColor = ConsoleColor.Yellow;
+    Console.WriteLine("  [?] ATENCIÓN: Está a punto de cerrar su turno actual.");
+    Console.WriteLine("      Esto exportará la bitácora de vehículos y cerrará su sesión de usuario.");
+    Console.Write("\n  ¿Está seguro que desea continuar? (S/N): ");
+    Console.ResetColor();
+
+    string confirmacion = Console.ReadLine()!.Trim().ToUpper();
+
+    if (confirmacion != "S")
+    {
+        // Si digita cualquier cosa que no sea una S se cancela la operacion
+        Console.ForegroundColor = ConsoleColor.DarkGray;
+        Console.WriteLine("\n  [i] Operación cancelada por el usuario.");
+        Console.ResetColor();
+        return false;
+    }
+
 
     // Aca se captura la hora salida del guardia y calculamos el tiempo trabajado
     int indiceActual = totalLogins - 1;
@@ -892,19 +911,68 @@ bool CerrarTurnoYGenerarReporte()
 
         File.WriteAllLines(nombreArchivo, lineasCsv, System.Text.Encoding.UTF8);
 
-        // Mensajes de exito con formato
+        Console.WriteLine("\n──────────────────────────────────────────────────────────────────────");
+        // Animacion Dinamica
+        Console.Write("  Sincronizando datos locales");
+        for (int p = 0; p < 6; p++)
+        {
+            Console.Write(".");
+            Thread.Sleep(200); 
+        }
         Console.ForegroundColor = ConsoleColor.Green;
-        Console.WriteLine("  [ OK ] Sincronización de datos completada.");
-        Console.WriteLine("  [ OK ] Turno cerrado formalmente en la base de datos local.\n");
+        Console.WriteLine(" [ OK ]");
         Console.ResetColor();
 
+        // Animacion dinamica
+        Console.Write("  Cerrando turno formalmente ");
+        for (int p = 0; p < 6; p++)
+        {
+            Console.Write(".");
+            Thread.Sleep(200); 
+        }
+        Console.ForegroundColor = ConsoleColor.Green;
+        Console.WriteLine(" [ OK ]");
+        Console.ResetColor();
+
+        // Animacion dinamica
+        Console.Write("  Empaquetando archivo CSV   ");
+        for (int p = 0; p < 6; p++)
+        {
+            Console.Write(".");
+            Thread.Sleep(200);
+        }
+        Console.ForegroundColor = ConsoleColor.Green;
+        Console.WriteLine(" [ OK ]");
+        Console.ResetColor();
         Console.WriteLine("  El reporte oficial ha sido generado y tabulado correctamente:");
-        Console.ForegroundColor = ConsoleColor.Yellow;
+        Console.ForegroundColor = ConsoleColor.Green;
         Console.WriteLine($"  >> Directorio actual \\ {nombreArchivo}\n");
         Console.ResetColor();
+        Console.WriteLine("\n──────────────────────────────────────────────────────────────────────");
+        // Pausamos para que el usuario pueda leer que todo salio perfe
+        Console.WriteLine("\n  Presione CUALQUIER TECLA para cerrar la sesión...");
+        Console.ReadKey();
 
-        //Devolver true despues de generar el archivo
-        return true;
+        // Animacion dinamica
+        Console.Clear();
+        Console.Write("\x1b[3J");
+        Console.ForegroundColor = ConsoleColor.Cyan;
+        Console.Write("CERRANDO SESIÓN Y ENCRIPTANDO DATOS");
+
+        // Bucle para imprimir puntitos uno por uno
+        for (int d = 0; d < 6; d++)
+        {
+            Console.Write(".");
+            Thread.Sleep(350); // Pausa de 350 milisegundos entre cada punto
+        }
+
+        Console.ForegroundColor = ConsoleColor.Green;
+        Console.WriteLine("\n[ SESIÓN FINALIZADA CON ÉXITO ]");
+        Console.ResetColor();
+        Thread.Sleep(1000); 
+
+        return true;//Devolver true para indicar que el turno se cerro
+
     }
     catch (Exception ex)
     {
