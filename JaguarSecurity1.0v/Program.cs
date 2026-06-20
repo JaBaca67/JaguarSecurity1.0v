@@ -1,22 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.ConstrainedExecution;
+using System.Text;
 
 Vehiculo[] vehiculos = new Vehiculo[1000];
-Guardia[] historialGuardias = new Guardia[100]; // Capacidad para 100 turnos
-string nombreGuardia = "";
-string idGuardia = "";
+Guardia[] guardias = new Guardia[100]; // Capacidad para 100 turnos
 int totalLogins = 0; // Contador de cuántos guardias han iniciado sesión
 int i = 0;
 
-
 void Main()
 {
-    IniciarSesionGuardia();
-    int op;
     while (true)
     {
-
+        IniciarSesionGuardia();
+        int op;
 
         do
         {
@@ -40,7 +37,6 @@ void Main()
                     Console.Clear();
                     AnimacionCargando("BÚSQUEDA RÁPIDA DE VEHÍCULO");
                     BuscarVehiculo();
-                    //Aquí se podría poner lo de eliminar un registro específico, 
                     break;
                 case 4:
                     Console.Clear();
@@ -59,7 +55,12 @@ void Main()
                     CerrarTurnoYGenerarReporte();
                     break;
                 case 7:
-                    Console.WriteLine("\nSaliendo del programa... ¡Hasta luego!");
+                    Console.Clear();
+                    AnimacionCargando("SALIR DEL PROGRAMA");
+                    Console.ForegroundColor = ConsoleColor.Yellow;
+                    Console.WriteLine("\nSaliendo del programa... ¡Hasta luego!\n");
+                    Console.ResetColor();
+                    Environment.Exit(0);
                     break;
                 default:
                     Console.WriteLine("\nOpción Inválida.");
@@ -67,7 +68,7 @@ void Main()
             }
 
             // Si no eligió salir, hacemos una pequeña pausa para ver el mensaje antes de volver a pintar el menú
-            if (op != 6 && op != 7)
+            if (op != 7)
             {
                 Console.WriteLine("Presione cualquier tecla para continuar...");
                 Console.ReadKey();
@@ -75,109 +76,185 @@ void Main()
 
         } while (op != 6 && op != 7);
         i = 0;
-
     }
 }
 
 Main();
 
+void LimpiarAreaConsola(int lineaInicio)
+{
+    // Capturar la posicion de la linea actual
+    int lineaActual = Console.CursorTop;
+
+    // borrar con un for
+    for (int i = lineaInicio; i <= lineaActual; i++)
+    {
+        Console.SetCursorPosition(0, i);
+        Console.Write(new string(' ', Console.WindowWidth - 1)); // Borra la línea sin dar saltos extra
+    }
+
+    // Regresamos el cursor exactamente al inicio
+    Console.SetCursorPosition(0, lineaInicio);
+}
+
+// Funcion para validar que el texto solo contenga letras y espacios, y no esté vacío
+bool EsTextoValido(string texto)
+{
+
+    if (string.IsNullOrWhiteSpace(texto)) return false;
+
+    foreach (char c in texto)
+    {
+
+        if (!char.IsLetter(c) && !char.IsWhiteSpace(c))
+        {
+            return false;
+        }
+    }
+    return true;
+}
 void IniciarSesionGuardia()
 {
     int entrada = 0;
     string nomEntrada = "";
-    bool sesionActiva = false;
+    string nom = "";
+    string ape = "";
 
+    // Interfaz inicial
     Console.Clear();
     Console.ForegroundColor = ConsoleColor.Cyan;
-    Console.WriteLine("==============================================");
-    Console.WriteLine("        BIENVENIDO A JAGUARSECURITY v1.0      ");
-    Console.WriteLine("==============================================");
+    Console.WriteLine("╔══════════════════════════════════════════════════════════════════════╗");
+    Console.WriteLine("║                                                                      ║");
+    Console.WriteLine("║                 SISTEMA DE CONTROL DE ACCESO UAM                     ║");
+    Console.WriteLine("║                       JAGUAR SECURITY v1.0                           ║");
+    Console.WriteLine("║                                                                      ║");
+    Console.WriteLine("╚══════════════════════════════════════════════════════════════════════╝");
     Console.ResetColor();
-    Console.WriteLine("Para comenzar, por favor registre su acceso.\n");
+    Console.WriteLine("\n  Por favor, ingrese sus credenciales oficiales para iniciar turno.\n");
 
-    while (!sesionActiva)
+    // Ingreso de nombre con validacion
+    int lineaInicioNombres = Console.CursorTop;
+    do
     {
-        Console.Write(">> Ingrese su Usuario: ");
-        nombreGuardia = Console.ReadLine()!.Trim();
+        LimpiarAreaConsola(lineaInicioNombres);
+        Console.ForegroundColor = ConsoleColor.Yellow;
+        Console.Write("  >> Nombres Completos (Ej: José Antonio): ");
+        Console.ResetColor();
 
-        if (nombreGuardia != "")
-        {
-            // === GENERADOR DE ID AUTOMÁTICO (4 Caracteres) ===
-            string caracteres = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-            Random rand = new Random();
-            char[] idArray = new char[4];
-            for (int j = 0; j < 4; j++)
-            {
-                idArray[j] = caracteres[rand.Next(caracteres.Length)];
-            }
-            idGuardia = new string(idArray); // Asignamos el ID generado
-            // =================================================
+        nom = Console.ReadLine()!.Trim();
 
-            Console.Clear();
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine($"¡Bienvenido, {nombreGuardia}! Su ID de operador asignado es: {idGuardia}");
-            Console.ResetColor();
-
-            // Selección de ubicación (Portón)
-            do
-            {
-                Console.WriteLine("\n--- Selección de Entrada UAM ---");
-                Console.WriteLine("1. Portón Principal");
-                Console.WriteLine("2. Portón Sur");
-                Console.WriteLine("3. Portón Norte");
-                Console.ForegroundColor = ConsoleColor.Blue;
-                Console.Write("\nSeleccione una entrada (1-3): ");
-                Console.ResetColor();
-
-                string entradaTexto = Console.ReadLine()!.Trim();
-                if (!int.TryParse(entradaTexto, out entrada))
-                {
-                    entrada = 0;
-                }
-                switch (entrada)
-                {
-                    case 1: nomEntrada = "Portón Principal"; break;
-                    case 2: nomEntrada = "Portón Sur"; break;
-                    case 3: nomEntrada = "Portón Norte"; break;
-                    default:
-                        Console.WriteLine(">> Error: Opción inválida. Intente de nuevo.");
-                        break;
-                }
-
-            } while (entrada < 1 || entrada > 3);
-
-            // === GUARDAR EN EL STRUCT ===
-            historialGuardias[totalLogins].nombreUsuario = nombreGuardia;
-            historialGuardias[totalLogins].id = idGuardia;
-            historialGuardias[totalLogins].horaInicio = DateTime.Now;
-
-            totalLogins++; // Aumentamos el contador
-            sesionActiva = true;
-
-            Console.Clear();
-            Console.ForegroundColor = ConsoleColor.Magenta;
-            Console.WriteLine("**********************************************");
-            Console.WriteLine("          SESIÓN INICIADA CORRECTAMENTE       ");
-            Console.WriteLine("**********************************************");
-            Console.ResetColor();
-
-            Console.WriteLine($"\n>>> ATENCIÓN: Usted es el usuario #{totalLogins} en loguearse hoy <<<\n");
-            Console.WriteLine($"Operador  : {historialGuardias[totalLogins - 1].nombreUsuario} (ID: {historialGuardias[totalLogins - 1].id})");
-            Console.WriteLine($"Ubicación : {nomEntrada}");
-            Console.WriteLine($"Fecha y Hora: {historialGuardias[totalLogins - 1].horaInicio.ToString("dd/MM/yyyy - HH:mm:ss")}");
-            Console.WriteLine("**********************************************");
-            Console.WriteLine("\nPresione cualquier tecla para continuar...");
-            Console.ReadKey();
-        }
-        else
+        if (!EsTextoValido(nom))
         {
             Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine("\n>> Error: El usuario no puede estar vacío.\n");
+            Console.WriteLine("\n  [!] Error: El nombre no puede estar vacío ni contener números o símbolos.");
+            Console.WriteLine("  Presione ENTER para reintentar...");
             Console.ResetColor();
+            Console.ReadLine();
         }
-    }
-}
+    } while (!EsTextoValido(nom));
 
+    // Ingreso de apellido con validacion
+    int lineaInicioApellidos = Console.CursorTop;
+    do
+    {
+        LimpiarAreaConsola(lineaInicioApellidos);
+        Console.ForegroundColor = ConsoleColor.Yellow;
+        Console.Write("  >> Apellidos Completos (Ej: Baca Silva): ");
+        Console.ResetColor();
+
+        ape = Console.ReadLine()!.Trim();
+
+        if (!EsTextoValido(ape))
+        {
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine("\n  [!] Error: El apellido no puede estar vacío ni contener números o símbolos.");
+            Console.WriteLine("  Presione ENTER para reintentar...");
+            Console.ResetColor();
+            Console.ReadLine();
+        }
+    } while (!EsTextoValido(ape));
+
+    // Creacion de ID e usuario
+    string[] nombresArray = nom.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+    string[] apellidosArray = ape.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
+    string primerNombre = nombresArray.Length > 0 ? nombresArray[0] : nom;
+    string primerApellido = apellidosArray.Length > 0 ? apellidosArray[0] : ape;
+
+    Random rand = new Random();
+    string idGenerado = "SEC-" + rand.Next(1000, 9999);
+    string userGenerado = (primerNombre.Substring(0, 1) + primerApellido).ToLower();
+
+    // Guardar en el struct
+    guardias[totalLogins].id = idGenerado;
+    guardias[totalLogins].nombre = nom;
+    guardias[totalLogins].apellido = ape;
+    guardias[totalLogins].nombreUsuario = userGenerado;
+    guardias[totalLogins].horaInicio = DateTime.Now;
+    guardias[totalLogins].horaSalida = null; // Turno abierto por defecto
+
+    // Interfaz seleccion del porton
+    Console.Clear();
+    Console.ForegroundColor = ConsoleColor.Cyan;
+    Console.WriteLine("╔══════════════════════════════════════════════════════════════════════╗");
+    Console.WriteLine("║                    ASIGNACIÓN DE PUESTO DE CONTROL                   ║");
+    Console.WriteLine("╚══════════════════════════════════════════════════════════════════════╝\n");
+    Console.ResetColor();
+
+    int lineaInicioMenu = Console.CursorTop;
+    do
+    {
+        LimpiarAreaConsola(lineaInicioMenu);
+
+        Console.WriteLine("  [1] Portón Principal");
+        Console.WriteLine("  [2] Portón Sur");
+        Console.WriteLine("  [3] Portón Norte\n");
+
+        Console.ForegroundColor = ConsoleColor.Yellow;
+        Console.Write("  >> Seleccione el puesto a cubrir (1-3): ");
+        Console.ResetColor();
+
+        string entradaTexto = Console.ReadLine()!.Trim();
+
+        if (!int.TryParse(entradaTexto, out entrada) || entrada < 1 || entrada > 3)
+        {
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine("\n  [!] Error: Selección inválida. Presione ENTER para reintentar...");
+            Console.ResetColor();
+            Console.ReadLine();
+        }
+    } while (entrada < 1 || entrada > 3);
+
+    nomEntrada = entrada == 1 ? "Portón Principal" : entrada == 2 ? "Portón Sur" : "Portón Norte";
+
+    totalLogins++;
+
+    //Interfaz de acceso autorizado con detalles del turno
+    Console.Clear();
+    Console.ForegroundColor = ConsoleColor.Green;
+    Console.WriteLine("╔══════════════════════════════════════════════════════════════════════╗");
+    Console.WriteLine("║                     ACCESO AUTORIZADO AL SISTEMA                     ║");
+    Console.WriteLine("╚══════════════════════════════════════════════════════════════════════╝");
+    Console.ResetColor();
+
+    Console.ForegroundColor = ConsoleColor.DarkGray;
+    Console.WriteLine($"\n  Registro interno #{totalLogins} - Nivel de acceso: Operador\n");
+    Console.ResetColor();
+
+    Console.WriteLine($"  ├─ Operador Titular : {nom} {ape}");
+    Console.WriteLine($"  ├─ Credencial (ID)  : {idGenerado}");
+    Console.WriteLine($"  ├─ Usuario de Red   : {userGenerado}");
+    Console.WriteLine($"  ├─ Puesto Asignado  : {nomEntrada}");
+    Console.WriteLine($"  └─ Fecha y hora     : {DateTime.Now.ToString("dd/MM/yyyy - HH:mm:ss")}\n");
+
+    Console.ForegroundColor = ConsoleColor.Cyan;
+    Console.WriteLine("========================================================================");
+    Console.WriteLine("  Presione [ENTER] para acceder al Panel de Control...");
+    Console.WriteLine("========================================================================");
+    Console.ResetColor();
+
+    Console.ReadLine();
+}
 
 // ==========================================
 // FUNCIÓN DEL MENÚ (CON VALIDACIÓN EN BUCLE)
@@ -197,7 +274,7 @@ int menu()
 
         // Saludo de bienvenida
         Console.ForegroundColor = ConsoleColor.Yellow;
-        Console.WriteLine($"\n      ¡Hola, oficial {nombreGuardia}! El sistema está listo para operar.\n");
+        Console.WriteLine($"\n      ¡Hola, oficial {guardias[totalLogins].nombreUsuario}! El sistema está listo para operar.\n");
         Console.ResetColor();
 
         // Opciones del menú
@@ -606,56 +683,41 @@ void ModuloAuditoria()
         Console.WriteLine("====================================================================");
         Console.ResetColor();
 
-        // 1. Escanear el directorio del programa para buscar archivos .csv
         string rutaActual = Directory.GetCurrentDirectory();
         string[] archivosGuardados = Directory.GetFiles(rutaActual, "*.csv");
 
-        // Validación en caso de que no existan reportes guardados todavía
         if (archivosGuardados.Length == 0)
         {
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine("\n >> No se han encontrado registros de sesiones anteriores (.CSV) en el sistema.");
             Console.ResetColor();
-            Console.WriteLine("\nPresione cualquier tecla para regresar al menú principal...");
-            Console.ReadKey();
-            break; // Sale de la auditoría y regresa al menú principal
+            break;
         }
 
         Console.WriteLine("\nSeleccione el número del archivo de registro que desea auditar:\n");
 
-        // 2. Listar de forma numérica dinámica todos los archivos encontrados (Guarda_Fecha_ID.csv)
         for (int idx = 0; idx < archivosGuardados.Length; idx++)
         {
-            // Path.GetFileNameWithoutExtension quita la ruta y el ".csv" para que se vea limpio
             string nombreLimpio = Path.GetFileNameWithoutExtension(archivosGuardados[idx]);
             Console.WriteLine($" [{idx + 1}] {nombreLimpio}");
         }
 
-        // Creamos una opción automática extra al final de la lista para salir ordenadamente
         int opcionSalir = archivosGuardados.Length + 1;
         Console.ForegroundColor = ConsoleColor.DarkGray;
         Console.WriteLine($" [{opcionSalir}] Volver al Menú Principal");
         Console.ResetColor();
         Console.WriteLine("────────────────────────────────────────────────────────────────────");
 
-        // 3. Solicitar la opción al usuario
         int seleccion;
-        Console.ForegroundColor = ConsoleColor.Blue;
+        Console.ForegroundColor = ConsoleColor.Yellow;
         Console.Write($" >> Digite una opción (1-{opcionSalir}): ");
         Console.ResetColor();
         string entrada = Console.ReadLine()!.Trim();
 
-        // 4. VALIDACIONES ESTRICTAS DE ENTRADA
-        // Comprueba que sea un número entero y que esté estrictamente dentro del rango de la lista
         if (int.TryParse(entrada, out seleccion) && seleccion >= 1 && seleccion <= opcionSalir)
         {
-            // Si el guarda elige el último número, rompe el bucle de auditoría y vuelve al menú
-            if (seleccion == opcionSalir)
-            {
-                break;
-            }
+            if (seleccion == opcionSalir) break;
 
-            // 5. Lectura y despliegue del contenido del archivo seleccionado
             string rutaArchivoElegido = archivosGuardados[seleccion - 1];
             Console.Clear();
             Console.ForegroundColor = ConsoleColor.Green;
@@ -664,32 +726,41 @@ void ModuloAuditoria()
             Console.WriteLine("=====================================================================================================\n");
             Console.ResetColor();
 
-            // Lee todas las líneas de texto almacenadas en ese CSV anterior
             string[] filasHistorial = File.ReadAllLines(rutaArchivoElegido);
 
             if (filasHistorial.Length == 0)
             {
                 Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.WriteLine(" >> El archivo seleccionado está vacío o no contiene datos tabulados.");
+                Console.WriteLine(" >> El archivo seleccionado está vacío.");
                 Console.ResetColor();
             }
             else
             {
-                // Imprime línea por línea el contenido original de la sesión auditada
+                // Imprime el contenido con un color sutil para diferenciarlo del menú
+                Console.ForegroundColor = ConsoleColor.White;
                 foreach (string fila in filasHistorial)
                 {
-                    Console.WriteLine(fila);
+                    // Si detecta las cabeceras del CSV, las pinta de Cyan para resaltarlas
+                    if (fila.StartsWith("==="))
+                    {
+                        Console.ForegroundColor = ConsoleColor.Cyan;
+                        Console.WriteLine($"\n{fila}");
+                        Console.ForegroundColor = ConsoleColor.White;
+                    }
+                    else
+                    {
+                        Console.WriteLine(" " + fila);
+                    }
                 }
+                Console.ResetColor();
             }
 
             Console.WriteLine("\n=====================================================================================================");
             Console.WriteLine("Presione cualquier tecla para regresar al listado numérico de auditoría...");
             Console.ReadKey();
-            // El ciclo while continuará y volverá a pintar la lista de archivos por si desea auditar otro.
         }
         else
         {
-            // Si digita letras, espacios vacíos o números fuera del rango
             Console.ForegroundColor = ConsoleColor.Red;
             Console.WriteLine("\n >> Error: Selección Inválida. Por favor digite un número correcto de la lista.");
             Console.ResetColor();
@@ -698,7 +769,6 @@ void ModuloAuditoria()
         }
     }
 }
-
 // =====================================================================
 //   OPCIÓN 6: CERRAR TURNO Y GENERAR REPORTES (.CSV)
 // =====================================================================
@@ -711,15 +781,93 @@ void CerrarTurnoYGenerarReporte()
     Console.WriteLine("====================================================================");
     Console.ResetColor();
 
+    if (i == 0)
+    {
+        Console.ForegroundColor = ConsoleColor.Red;
+        Console.WriteLine("\n >> Error: No se puede cerrar el turno ni generar el archivo CSV.");
+        Console.WriteLine("    Debe registrar al menos un (1) vehículo en la sesión actual antes de exportar.");
+        Console.ResetColor();
+        return;
+    }
+
+    // === 1. CAPTURAR AL GUARDIA EN TURNO Y MARCAR SU SALIDA ===
+    // Restamos 1 porque totalLogins ya sumó 1 al terminar el login
+    int indiceActual = totalLogins - 1;
+
+    // Registramos la hora exacta en la que está presionando la opción 6
+    guardias[indiceActual].horaSalida = DateTime.Now;
+
+    // === 2. FORMATEAR EL NOMBRE DEL ARCHIVO CON LOS DATOS DEL STRUCT ===
+    string nombreLimpio = guardias[indiceActual].nombre.Split(' ')[0].ToLower(); // Solo el primer nombre
+    string apellidoLimpio = guardias[indiceActual].apellido.Split(' ')[0].ToLower(); // Solo el primer apellido
+    string idGuardia = guardias[indiceActual].id; // Ej. SEC-4592
+    string fechaHoy = DateTime.Now.ToString("dd-MM-yyyy");
+
+    // Nombre de archivo profesional: ej. "jose_baca_19-06-2026_SEC-4592.csv"
+    string nombreArchivo = $"{nombreLimpio}_{apellidoLimpio}_{fechaHoy}_{idGuardia}.csv";
+
+    try
+    {
+        List<string> lineasCsv = new List<string>();
+
+        // ORDEN 1: Datos del guarda jalados directamente del Struct
+        lineasCsv.Add("=== DATOS DE APERTURA DE TURNO ===");
+        lineasCsv.Add($"Operador Titular:,{guardias[indiceActual].nombre} {guardias[indiceActual].apellido}");
+        lineasCsv.Add($"Credencial (ID):,{guardias[indiceActual].id}");
+        lineasCsv.Add($"Usuario de Red:,{guardias[indiceActual].nombreUsuario}");
+        // La horaInicio ya estaba guardada desde el login
+        lineasCsv.Add($"Fecha y Hora de Acceso:,{guardias[indiceActual].horaInicio.ToString("dd/MM/yyyy HH:mm:ss")}");
+        lineasCsv.Add("");
+
+        // ORDEN 2: Vehículos
+        lineasCsv.Add("=== VEHÍCULOS CAPTURADOS EN LA BITÁCORA ===");
+        lineasCsv.Add("Nº,Placa,Tipo,Conductor,Cédula,Destino,Detalles");
+
+        for (int r = 0; r < i; r++)
+        {
+            string placa = vehiculos[r].placa.Replace(",", ";");
+            string tipo = vehiculos[r].tipo.Replace(",", ";");
+            string conductor = vehiculos[r].conductor.Replace(",", ";");
+            string cedula = vehiculos[r].cedula.Replace(",", ";");
+            string destino = vehiculos[r].destino.Replace(",", ";");
+            string detalles = vehiculos[r].detalles.Replace(",", ";");
+
+            lineasCsv.Add($"{r + 1},{placa},{tipo},{conductor},{cedula},{destino},{detalles}");
+        }
+        lineasCsv.Add("");
+
+        // ORDEN 3: Cierre jalando la horaSalida del struct
+        lineasCsv.Add("=== CIERRE DE OPERACIONES ===");
+        lineasCsv.Add($"Fecha y Hora Exacta de Salida:,{guardias[indiceActual].horaSalida.Value.ToString("dd/MM/yyyy HH:mm:ss")}");
+        lineasCsv.Add($"Total de Registros Guardados:,{i} vehículos");
+
+        File.WriteAllLines(nombreArchivo, lineasCsv, System.Text.Encoding.UTF8);
+
+        Console.ForegroundColor = ConsoleColor.Green;
+        Console.WriteLine("\n ¡TURNO CERRADO Y REPORTE EXPORTADO CORRECTAMENTE!");
+        Console.ResetColor();
+        Console.WriteLine(" Se ha generado tu archivo de auditoría con el nombre:");
+        Console.ForegroundColor = ConsoleColor.Yellow;
+        Console.WriteLine($" >> {nombreArchivo}");
+        Console.ResetColor();
+        Console.WriteLine("\n Los datos de la sesión actual se han respaldado de forma segura.");
+    }
+    catch (Exception ex)
+    {
+        Console.ForegroundColor = ConsoleColor.Red;
+        Console.WriteLine($"\n >> Error Crítico de escritura: No se pudo generar el archivo. {ex.Message}");
+        Console.ResetColor();
+    }
 }
 //Nuevo struct para los guardas.
 struct Guardia
 {
-    public string id;            
-    public string nombre;        
-    public string apellido;      
+    public string id;
+    public string nombre;
+    public string apellido;
     public string nombreUsuario;
-    public DateTime horaInicio; 
+    public DateTime horaInicio;
+    public DateTime? horaSalida;
 }
 struct Vehiculo
 {
