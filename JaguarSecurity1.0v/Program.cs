@@ -1,210 +1,302 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.ConstrainedExecution;
+using System.Text;
+using System.Threading;
 
 Vehiculo[] vehiculos = new Vehiculo[1000];
+Guardia[] guardias = new Guardia[100]; // Capacidad para 100 turnos
+int totalLogins = 0; // Contador de cuántos guardias han iniciado sesión
 int i = 0;
-string nombreGuardia = "";
-string apellidoGuardia = "";
 
 void Main()
 {
-    IniciarSesionGuardia();
-    int op;
-
-    do
+    while (true)
     {
-        // Llamamos a la función menu y guardamos el resultado en 'op'
-        op = menu();
+        IniciarSesionGuardia();
+        int op;
 
-        // Evaluamos la opción seleccionada
-        switch (op)
+        do
         {
-            case 1:
-                Console.Clear();
-                AnimacionCargando("REGISTRAR INGRESO VEHICULAR SELECTIVO");
-                RegistroVehiculo();
-                break;
-            case 2:
-                Console.Clear();
-                AnimacionCargando("EDITAR VEHICULOS REGISTRADOS");
-                EditarVehiculo();
-                break;
-            case 3:
-                Console.Clear();
-                AnimacionCargando("BÚSQUEDA RÁPIDA DE VEHÍCULO");
-                //Aquí se podría poner lo de eliminar un registro específico, 
-                break;
-            case 4:
-                Console.Clear();
-                AnimacionCargando("MOSTRAR REGISTROS DE LA SESIÓN ACTUAL");
-                break;
-            case 5:
-                Console.Clear();
-                AnimacionCargando("MÓDULO DE AUDITORÍA");
-                break;
-            case 6:
-                Console.Clear();
-                AnimacionCargando("CERRAR TURNO Y GENERAR REPORTES (.CSV)");
-                break;
-            case 7:
-                Console.WriteLine("\nSaliendo del programa... ¡Hasta luego!");
-                break;
-            default:
-                Console.WriteLine("\nOpción Inválida.");
-                break;
-        }
 
-        // Si no eligió salir, hacemos una pequeña pausa para ver el mensaje antes de volver a pintar el menú
-        if (op != 7)
-        {
-            Console.WriteLine("Presione cualquier tecla para continuar...");
-            Console.ReadKey();
-        }
+            // Llamamos a la función menu y guardamos el resultado en 'op'
+            op = menu();
 
-    } while (op != 7);
+            // Evaluamos la opción seleccionada
+            switch (op)
+            {
+                case 1:
+                    Console.Clear();
+                    AnimacionCargando("REGISTRAR INGRESO VEHICULAR SELECTIVO");
+                    RegistroVehiculo();
+                    break;
+                case 2:
+                    Console.Clear();
+                    AnimacionCargando("EDITAR VEHICULOS REGISTRADOS");
+                    EditarVehiculo();
+                    break;
+                case 3:
+                    Console.Clear();
+                    AnimacionCargando("BÚSQUEDA RÁPIDA DE VEHÍCULO");
+                    BuscarVehiculo();
+                    break;
+                case 4:
+                    Console.Clear();
+                    AnimacionCargando("MOSTRAR REGISTROS DE LA SESIÓN ACTUAL");
+                    MostrarRegistros();
 
+                    break;
+                case 5:
+                    Console.Clear();
+                    AnimacionCargando("MÓDULO DE AUDITORÍA");
+                    ModuloAuditoria();
+                    break;
+                case 6:
+                    Console.Clear();
+                    AnimacionCargando("CERRAR TURNO Y GENERAR REPORTES (.CSV)");
+
+                    bool turnoCerradoConExito = CerrarTurnoYGenerarReporte();
+
+                    if (turnoCerradoConExito == false)
+                    {
+                        // Evitamos que se rompa el ciclo cambiando la opción a 0
+                        op = 0;
+
+                        Console.ForegroundColor = ConsoleColor.Yellow;
+                        Console.WriteLine("\n >> Regresando al menú principal de la sesión actual...");
+                        Console.ResetColor();
+                    }
+                    break;
+                case 7:
+                    Console.Clear();
+                    AnimacionCargando("SALIR DEL PROGRAMA");
+                    Console.ForegroundColor = ConsoleColor.Yellow;
+                    Console.WriteLine("\nSaliendo del programa... ¡Hasta luego!\n");
+                    Console.ResetColor();
+                    Environment.Exit(0);
+                    break;
+                default:
+                    Console.WriteLine("\nOpción Inválida.");
+                    break;
+            }
+
+            // Si no eligió salir, hacemos una pequeña pausa para ver el mensaje antes de volver a pintar el menú
+            if (op != 7)
+            {
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine("\nPresione cualquier tecla para continuar...");
+                Console.ResetColor();
+                Console.ReadKey();
+            }
+
+        } while (op != 6 && op != 7);
+        i = 0;
+    }
 }
 
 Main();
 
+void LimpiarAreaConsola(int lineaInicio)
+{
+    // Capturar la posicion de la linea actual
+    int lineaActual = Console.CursorTop;
+
+    // borrar con un for
+    for (int i = lineaInicio; i <= lineaActual; i++)
+    {
+        Console.SetCursorPosition(0, i);
+        Console.Write(new string(' ', Console.WindowWidth - 1)); // Borra la línea sin dar saltos extra
+    }
+
+    // Regresamos el cursor exactamente al inicio
+    Console.SetCursorPosition(0, lineaInicio);
+}
+
+// Funcion para validar que el texto solo contenga letras y espacios, y no esté vacío
+bool EsTextoValido(string texto)
+{
+
+    if (string.IsNullOrWhiteSpace(texto)) return false;
+
+    foreach (char c in texto)
+    {
+
+        if (!char.IsLetter(c) && !char.IsWhiteSpace(c))
+        {
+            return false;
+        }
+    }
+    return true;
+}
 void IniciarSesionGuardia()
 {
     int entrada = 0;
     string nomEntrada = "";
-    DateTime horaInicio;
-    bool sesionActiva = false;
+    string nom = "";
+    string ape = "";
 
+    // Interfaz inicial
     Console.Clear();
     Console.ForegroundColor = ConsoleColor.Cyan;
-    Console.WriteLine("==============================================");
-    Console.WriteLine("        BIENVENIDO A JAGUARSECURITY v1.0      ");
-    Console.WriteLine("==============================================");
+    Console.WriteLine("╔══════════════════════════════════════════════════════════════════════╗");
+    Console.WriteLine("║                                                                      ║");
+    Console.WriteLine("║                 SISTEMA DE CONTROL DE ACCESO UAM                     ║");
+    Console.WriteLine("║                       JAGUAR SECURITY v1.0                           ║");
+    Console.WriteLine("║                                                                      ║");
+    Console.WriteLine("╚══════════════════════════════════════════════════════════════════════╝");
     Console.ResetColor();
-    Console.WriteLine("Para comenzar, por favor registre sus datos.\n");
+    Console.WriteLine("\n  Por favor, ingrese sus credenciales oficiales para iniciar turno.\n");
 
-    while (!sesionActiva)
+    // Ingreso de nombre con validacion
+    int lineaInicioNombres = Console.CursorTop;
+    do
     {
-        Console.Write(">> Ingrese su nombre: ");
-        nombreGuardia = Console.ReadLine()!.Trim();// .Trim() quita espacios accidentales al inicio y final
+        LimpiarAreaConsola(lineaInicioNombres);
+        Console.ForegroundColor = ConsoleColor.Yellow;
+        Console.Write("  >> Nombres Completos (Ej: José Antonio): ");
+        Console.ResetColor();
 
-        Console.Write(">> Ingrese su apellido: ");
-        apellidoGuardia = Console.ReadLine()!.Trim();
+        nom = Console.ReadLine()!.Trim();
 
-        bool nombreValido = true;
-        bool apellidoValido = true;
-
-        // Validar nombre (Ahora permite letras y espacios)
-        foreach (char c in nombreGuardia)
-        {
-            if (!char.IsLetter(c) && !char.IsWhiteSpace(c))
-            {
-                nombreValido = false;
-                break;
-            }
-        }
-
-        // Validar apellido
-        foreach (char c in apellidoGuardia)
-        {
-            if (!char.IsLetter(c) && !char.IsWhiteSpace(c))
-            {
-                apellidoValido = false;
-                break;
-            }
-        }
-
-        if (nombreGuardia != "" && apellidoGuardia != "" && nombreValido && apellidoValido)
-        {
-            Console.Clear();
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine("¡Bienvenido, " + nombreGuardia + "! Proceda a seleccionar su ubicación.");
-            Console.ResetColor();
-            // Validar entrada UAM
-            do
-            {
-                Console.WriteLine("\n--- Selección de Entrada UAM ---");
-                Console.WriteLine("1. Portón Principal");
-                Console.WriteLine("2. Portón Sur");
-                Console.WriteLine("3. Portón Norte");
-                Console.ForegroundColor = ConsoleColor.Blue;
-                Console.Write("\nSeleccione una entrada (1-3): ");
-                Console.ResetColor();
-
-                /*Mejora de lider: Validar que la entrada sea un número entero
-                 * si el guardia ingresa un letra (ej:A), el programa no se bloquea y muestra un mensaje de error */
-
-                string entradaTexto = Console.ReadLine()!.Trim();
-                if (!int.TryParse(entradaTexto, out entrada))
-                {
-                    entrada = 0; // Forzar un valor invalido para que se repita el ciclo
-                }
-                switch (entrada)
-                {
-                    case 1:
-                        nomEntrada = "Portón Principal";
-                        break;
-
-                    case 2:
-                        nomEntrada = "Portón Sur";
-                        break;
-
-                    case 3:
-                        nomEntrada = "Portón Norte";
-                        break;
-
-                    default:
-                        Console.WriteLine(">> Error: Opción inválida. Intente de nuevo.");
-                        break;
-                }
-
-            } while (entrada < 1 || entrada > 3);
-
-            horaInicio = DateTime.Now; // Hora automática
-            sesionActiva = true;
-
-            Console.Clear(); // Limpiar pantalla para mostrar solo la información relevante después de iniciar sesión
-            Console.ForegroundColor = ConsoleColor.Magenta;
-            Console.WriteLine("**********************************************");
-            Console.WriteLine("          SESIÓN INICIADA CORRECTAMENTE       ");
-            Console.WriteLine("**********************************************");
-            Console.ResetColor();
-            Console.WriteLine($"Operador  : {nombreGuardia} {apellidoGuardia}");
-            Console.WriteLine($"Ubicación : {nomEntrada}");
-            Console.WriteLine($"Fecha y Hora: {horaInicio.ToString("dd/MM/yyyy - HH:mm:ss")}");
-            Console.WriteLine("**********************************************");
-            Console.WriteLine("\nPresione cualquier tecla para continuar...");
-            Console.ReadKey();
-        }
-        else
+        if (!EsTextoValido(nom))
         {
             Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine("\n>> Error: Datos inválidos.\n");
+            Console.WriteLine("\n  [!] Error: El nombre no puede estar vacío ni contener números o símbolos.");
+            Console.WriteLine("  Presione ENTER para reintentar...");
             Console.ResetColor();
-
+            Console.ReadLine();
         }
-    }
-}
+    } while (!EsTextoValido(nom));
 
+    // Ingreso de apellido con validacion
+    int lineaInicioApellidos = Console.CursorTop;
+    do
+    {
+        LimpiarAreaConsola(lineaInicioApellidos);
+        Console.ForegroundColor = ConsoleColor.Yellow;
+        Console.Write("  >> Apellidos Completos (Ej: Baca Silva): ");
+        Console.ResetColor();
+
+        ape = Console.ReadLine()!.Trim();
+
+        if (!EsTextoValido(ape))
+        {
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine("\n  [!] Error: El apellido no puede estar vacío ni contener números o símbolos.");
+            Console.WriteLine("  Presione ENTER para reintentar...");
+            Console.ResetColor();
+            Console.ReadLine();
+        }
+    } while (!EsTextoValido(ape));
+
+    // Creacion de ID e usuario
+    string[] nombresArray = nom.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+    string[] apellidosArray = ape.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
+    string primerNombre = nombresArray.Length > 0 ? nombresArray[0] : nom;
+    string primerApellido = apellidosArray.Length > 0 ? apellidosArray[0] : ape;
+
+    Random rand = new Random();
+    string idGenerado = "SEC-" + rand.Next(1000, 9999);
+    string userGenerado = (primerNombre.Substring(0, 1) + primerApellido).ToLower();
+
+    // Guardar en el struct
+    guardias[totalLogins].id = idGenerado;
+    guardias[totalLogins].nombre = nom;
+    guardias[totalLogins].apellido = ape;
+    guardias[totalLogins].nombreUsuario = userGenerado;
+    guardias[totalLogins].horaInicio = DateTime.Now;
+    guardias[totalLogins].horaSalida = null; // Turno abierto por defecto
+
+    // Interfaz seleccion del porton
+    Console.Clear();
+    Console.ForegroundColor = ConsoleColor.Cyan;
+    Console.WriteLine("╔══════════════════════════════════════════════════════════════════════╗");
+    Console.WriteLine("║                    ASIGNACIÓN DE PUESTO DE CONTROL                   ║");
+    Console.WriteLine("╚══════════════════════════════════════════════════════════════════════╝\n");
+    Console.ResetColor();
+
+    int lineaInicioMenu = Console.CursorTop;
+    do
+    {
+        LimpiarAreaConsola(lineaInicioMenu);
+
+        Console.WriteLine("  [1] Portón Principal");
+        Console.WriteLine("  [2] Portón Sur");
+        Console.WriteLine("  [3] Portón Norte\n");
+
+        Console.ForegroundColor = ConsoleColor.Yellow;
+        Console.Write("  >> Seleccione el puesto a cubrir (1-3): ");
+        Console.ResetColor();
+
+        string entradaTexto = Console.ReadLine()!.Trim();
+
+        if (!int.TryParse(entradaTexto, out entrada) || entrada < 1 || entrada > 3)
+        {
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine("\n  [!] Error: Selección inválida. Presione ENTER para reintentar...");
+            Console.ResetColor();
+            Console.ReadLine();
+        }
+    } while (entrada < 1 || entrada > 3);
+
+    nomEntrada = entrada == 1 ? "Portón Principal" : entrada == 2 ? "Portón Sur" : "Portón Norte";
+
+    totalLogins++;
+
+    //Interfaz de acceso autorizado con detalles del turno
+    Console.Clear();
+    Console.ForegroundColor = ConsoleColor.Green;
+    Console.WriteLine("╔══════════════════════════════════════════════════════════════════════╗");
+    Console.WriteLine("║                     ACCESO AUTORIZADO AL SISTEMA                     ║");
+    Console.WriteLine("╚══════════════════════════════════════════════════════════════════════╝");
+    Console.ResetColor();
+
+    Console.ForegroundColor = ConsoleColor.DarkGray;
+    Console.WriteLine($"\n  Registro interno #{totalLogins} - Nivel de acceso: Operador\n");
+    Console.ResetColor();
+
+    Console.WriteLine($"  ├─ Operador Titular : {nom} {ape}");
+    Console.WriteLine($"  ├─ Credencial (ID)  : {idGenerado}");
+    Console.WriteLine($"  ├─ Usuario de Red   : {userGenerado}");
+    Console.WriteLine($"  ├─ Puesto Asignado  : {nomEntrada}");
+    Console.WriteLine($"  └─ Fecha y hora     : {DateTime.Now.ToString("dd/MM/yyyy - HH:mm:ss")}\n");
+
+    Console.ForegroundColor = ConsoleColor.Cyan;
+    Console.WriteLine("========================================================================");
+    Console.WriteLine("  Presione [ENTER] para acceder al Panel de Control...");
+    Console.WriteLine("========================================================================");
+    Console.ResetColor();
+
+    Console.ReadLine();
+}
 
 // ==========================================
 // FUNCIÓN DEL MENÚ (CON VALIDACIÓN EN BUCLE)
 // ==========================================
 int menu()
 {
+    // 1. Identificamos al guardia que acaba de iniciar sesión
+    int indiceActual = totalLogins - 1;
+    Guardia operador = guardias[indiceActual];
+
+    // 2. Extraemos solo el primer nombre y primer apellido para que no sea muy largo
+    string primerNombre = operador.nombre.Split(' ')[0].ToUpper();
+    string primerApellido = operador.apellido.Split(' ')[0].ToUpper();
     int opc;
     while (true)
     {
         Console.Clear();
-        // Encabezado decorativo
+        Console.Write("\x1b[3J");
         Console.ForegroundColor = ConsoleColor.Cyan;
-        Console.WriteLine("╔══════════════════════════════════════════════════════════════════╗");
-        Console.WriteLine("║            SISTEMA DE SEGURIDAD INTEGRAL: JAGUAR V1.0            ║");
-        Console.WriteLine("╚══════════════════════════════════════════════════════════════════╝");
-        Console.ResetColor();
+        Console.WriteLine("╔══════════════════════════════════════════════════════════════════════╗");
+        Console.WriteLine("║                 SISTEMA DE CONTROL JAGUAR SECURITY                   ║");
+        Console.WriteLine("╚══════════════════════════════════════════════════════════════════════╝");
 
-        // Saludo de bienvenida
-        Console.ForegroundColor = ConsoleColor.Yellow;
-        Console.WriteLine($"\n      ¡Hola, oficial {nombreGuardia} {apellidoGuardia}! El sistema está listo para operar.\n");
+        // 3. Imprimimos la barra de bienvenida personalizada
+        Console.ForegroundColor = ConsoleColor.DarkGray;
+        Console.WriteLine($"  OFICIAL EN TURNO: {primerNombre} {primerApellido}  |  CREDENCIAL: {operador.id} | USUARIO: {operador.nombreUsuario}");
+        Console.WriteLine("────────────────────────────────────────────────────────────────────────");
         Console.ResetColor();
 
         // Opciones del menú
@@ -212,7 +304,7 @@ int menu()
         Console.WriteLine("2. EDITAR VEHICULOS REGISTRADOS");
         Console.WriteLine("3. BÚSQUEDA RÁPIDA DE VEHÍCULO");
         Console.WriteLine("4. MOSTRAR REGISTROS DE LA SESIÓN ACTUAL");
-        Console.WriteLine("5. MÓDULO DE AUDITORÍA(REVISIÓN DE SESIONES ANTERIORES)");
+        Console.WriteLine("5. MÓDULO DE AUDITORÍA (REVISIÓN DE SESIONES ANTERIORES)");
         Console.WriteLine("6. CERRAR TURNO Y GENERAR REPORTES (.CSV)");
         Console.WriteLine("7. SALIR DEL PROGRAMA");
         Console.WriteLine("\n────────────────────────────────────────────────────────────────────");
@@ -261,7 +353,7 @@ void AnimacionCargando(string mensaje)
     Console.ResetColor();
     System.Threading.Thread.Sleep(400);
 }
-
+//OPCION 1 MENU 1: REGISTRAR INGRESO VEHICULAR SELECTIVO
 void RegistroVehiculo()
 {
     string continuar = "S";
@@ -290,7 +382,7 @@ void RegistroVehiculo()
                 break;
             }
 
-            Console.WriteLine($"\nRegistro de Vehículo #{i + 1} de 1000 ");
+            Console.WriteLine($"\nRegistro de Vehículo #{i + 1}");
 
             vehiculos[i].tipo = SeleccionarTipo();
             vehiculos[i].placa = LeerPlaca();
@@ -318,58 +410,6 @@ void RegistroVehiculo()
         }
     }
 }
-
-void EditarVehiculo()
-{
-    Console.Clear();
-    Console.WriteLine(" Modo edición de Vehículos registrados ");
-    if (i == 0)
-    {
-        Console.WriteLine("No hay vehículos registrados.");
-        return;
-    }
-
-    Console.WriteLine($"Vehículos registrados: {i}");
-    for (int r = 0; r < i; r++)
-    {
-        Console.WriteLine($"[{r + 1}] Placa: {vehiculos[r].placa}  Conductor: {vehiculos[r].conductor}");
-    }
-
-    int num = 0;
-    while (true)
-    {
-        Console.Write($"Ingrese el número de vehículo a modificar (1 al {i}) o escriba N (No), para salir del modo edición: ");
-        string entrada = Console.ReadLine()!;
-
-        if (entrada == "N")
-        {
-            return;
-        }
-
-        if (int.TryParse(entrada, out num) && num > 0 && num <= i)
-            break;
-
-        Console.ForegroundColor = ConsoleColor.Red;
-        Console.WriteLine("Valor inválido por favor ingrese N o seleccione el número entero del vehículo correspondiente a editar.");
-        Console.ResetColor();
-    }
-
-    int pos = num - 1;
-    Console.WriteLine($"Modificando Vehículo #{num} (Actual: {vehiculos[pos].placa})");
-    Console.WriteLine("---------------------------------------------");
-
-    vehiculos[pos].tipo = SeleccionarTipo();
-    vehiculos[pos].placa = LeerPlaca();
-    vehiculos[pos].conductor = LeerConductor();
-    vehiculos[pos].cedula = LeerCedula();
-    vehiculos[pos].destino = LeerOpcional("Nuevo Destino");
-    vehiculos[pos].detalles = LeerOpcional("Nuevos Detalles");
-
-    Console.ForegroundColor = ConsoleColor.Green;
-    Console.WriteLine("¡Vehículo modificado correctamente!");
-    Console.ResetColor();
-}
-
 
 string SeleccionarTipo()
 {
@@ -406,7 +446,7 @@ string LeerPlaca()
 {
     while (true)
     {
-        Console.Write("\nPlaca del vehículo (Máx 15 caracteres), ej:M123456 o M 123456 ");
+        Console.Write("\nPlaca del vehículo (Máx 15 caracteres), ej:M123456 o M 123456: ");
         string placa = Console.ReadLine()!;
         if (placa != "" && placa.Length <= 15)
             return placa;
@@ -463,7 +503,7 @@ string LeerCedula()
 {
     while (true)
     {
-        Console.Write("/nCédula (Escribir los 14 caracteres o de forma obligatoria escribir N/A para omitir): ");
+        Console.Write("\nCédula (Escribir los 14 caracteres o de forma obligatoria escribir N/A para omitir): ");
         string cedula = Console.ReadLine()!;
 
         if (cedula == "N/A")
@@ -494,6 +534,466 @@ string LeerOpcional(string nombreCampo)
     }
 }
 
+//OP MENU 2: EDICIÓN DE VEHÍCULOS REGISTRADOS
+
+void EditarVehiculo()
+{
+    Console.Clear();
+    Console.WriteLine(" Modo edición de Vehículos registrados ");
+    if (i == 0)
+    {
+        Console.WriteLine("No hay vehículos registrados.");
+        return;
+    }
+
+    Console.WriteLine($"Vehículos registrados: {i}");
+    for (int r = 0; r < i; r++)
+    {
+        Console.WriteLine($"[{r + 1}] Placa: {vehiculos[r].placa}  Conductor: {vehiculos[r].conductor}");
+    }
+
+    int num = 0;
+    while (true)
+    {
+        Console.Write($"Ingrese el número de vehículo a modificar (1 al {i}) o escriba N (No), para salir del modo edición: ");
+        string entrada = Console.ReadLine()!;
+
+        if (entrada == "N")
+        {
+            return;
+        }
+
+        if (int.TryParse(entrada, out num) && num > 0 && num <= i)
+            break;
+
+        Console.ForegroundColor = ConsoleColor.Red;
+        Console.WriteLine("Valor inválido por favor ingrese N o seleccione el número entero del vehículo correspondiente a editar.");
+        Console.ResetColor();
+    }
+
+    int pos = num - 1;
+    Console.WriteLine($"Modificando Vehículo #{num} (Actual: {vehiculos[pos].placa})");
+    Console.WriteLine("---------------------------------------------");
+
+    vehiculos[pos].tipo = SeleccionarTipo();
+    vehiculos[pos].placa = LeerPlaca();
+    vehiculos[pos].conductor = LeerConductor();
+    vehiculos[pos].cedula = LeerCedula();
+    vehiculos[pos].destino = LeerOpcional("Nuevo Destino");
+    vehiculos[pos].detalles = LeerOpcional("Nuevos Detalles");
+
+    Console.ForegroundColor = ConsoleColor.Green;
+    Console.WriteLine("¡Vehículo modificado correctamente!");
+    Console.ResetColor();
+}
+
+
+//OP MENU 3: BÚSQUEDA RÁPIDA DE VEHÍCULO
+//====================================
+// BÚSQUEDA RÁPIDA DE VEHÍCULO
+//====================================
+void BuscarVehiculo()
+{
+    Console.Clear();
+    Console.WriteLine("===== BÚSQUEDA RÁPIDA DE VEHÍCULO =====");
+
+    Console.Write("Ingrese la placa del vehículo: ");
+    string placaBuscada = Console.ReadLine()!.ToUpper();
+
+    bool encontrado = false;
+
+    for (int j = 0; j < i; j++)
+    {
+        // Validamos que el vehículo no sea nulo y comparamos la placa
+        if (vehiculos[j].placa != null && vehiculos[j].placa.ToUpper() == placaBuscada)
+        {
+            Console.WriteLine("\nVEHÍCULO ENCONTRADO");
+            Console.WriteLine("================================");
+            Console.WriteLine($"Tipo: {vehiculos[j].tipo}");
+            Console.WriteLine($"Placa: {vehiculos[j].placa}");
+            Console.WriteLine($"Conductor: {vehiculos[j].conductor}");
+            Console.WriteLine($"Cédula: {vehiculos[j].cedula}");
+            Console.WriteLine($"Destino: {vehiculos[j].destino}");
+            Console.WriteLine($"Detalles: {vehiculos[j].detalles}");
+            Console.WriteLine("================================");
+
+            encontrado = true;
+            break;
+        }
+    }
+
+    if (!encontrado)
+    {
+        Console.ForegroundColor = ConsoleColor.Red;
+        Console.WriteLine("\nNo se encontró ningún vehículo con esa placa en la sesión actual.");
+        Console.ResetColor();
+    }
+}
+
+//OPCION MENU 4: MOSTRAR REGISTROS DE LA SESIÓN ACTUAL
+// ==========================================
+// FUNCIÓN PARA MOSTRAR LOS REGISTROS DE LA SESIÓN ACTUAL
+// ==========================================
+void MostrarRegistros()
+{
+    Console.Clear();
+    Console.ForegroundColor = ConsoleColor.Cyan;
+    Console.WriteLine("=====================================================================================================");
+    Console.WriteLine("                              REGISTROS DE LA SESIÓN ACTUAL");
+    Console.WriteLine("=====================================================================================================\n");
+    Console.ResetColor();
+
+    // Validacion de registros
+    if (i == 0)
+    {
+        Console.ForegroundColor = ConsoleColor.Yellow;
+        Console.WriteLine("No hay vehículos registrados en esta sesión actualmente.");
+        Console.ResetColor();
+        return;
+    }
+
+    Console.ForegroundColor = ConsoleColor.DarkGray;
+    Console.WriteLine("  Nota: Los textos muy largos se muestran resumidos para mantener la estabilidad visual de la tabla.");
+    Console.WriteLine("        El registro completo se almacena de forma íntegra en el sistema.\n");
+    Console.ResetColor();
+    // Encabezado de la tabla estructurada (Ancho total optimizado)
+    Console.ForegroundColor = ConsoleColor.Yellow;
+    Console.WriteLine("╔════╦══════════════╦══════════════════╦════════════════════════╦════════════════╦══════════════════════╦═══════════════════════════╗");
+    Console.WriteLine("║ Nº ║ Placa        ║ Tipo             ║ Conductor              ║ Cédula         ║ Destino              ║ Detalles                  ║");
+    Console.WriteLine("╠════╬══════════════╬══════════════════╬════════════════════════╬════════════════╬══════════════════════╬═══════════════════════════╣");
+    Console.ResetColor();
+
+    for (int r = 0; r < i; r++)
+    {
+        // Alinear y limitar el texto para cada columna usando los nuevos anchos seguros
+        string num = (r + 1).ToString().PadRight(2);
+
+        string placa = vehiculos[r].placa.Length > 12 ? vehiculos[r].placa.Substring(0, 12) : vehiculos[r].placa.PadRight(12);
+        string tipo = vehiculos[r].tipo.Length > 16 ? vehiculos[r].tipo.Substring(0, 16) : vehiculos[r].tipo.PadRight(16);
+        string cond = vehiculos[r].conductor.Length > 22 ? vehiculos[r].conductor.Substring(0, 22) : vehiculos[r].conductor.PadRight(22);
+        string ced = vehiculos[r].cedula.Length > 14 ? vehiculos[r].cedula.Substring(0, 14) : vehiculos[r].cedula.PadRight(14);
+        string dest = vehiculos[r].destino.Length > 20 ? vehiculos[r].destino.Substring(0, 20) : vehiculos[r].destino.PadRight(20);
+
+        // Nueva columna que faltaba por agregarse en la tabla.
+        string det = vehiculos[r].detalles.Length > 25 ? vehiculos[r].detalles.Substring(0, 25) : vehiculos[r].detalles.PadRight(25);
+
+        // Imprimir la fila perfectamente alineada
+        Console.WriteLine($"║ {num} ║ {placa} ║ {tipo} ║ {cond} ║ {ced} ║ {dest} ║ {det} ║");
+    }
+
+    // Pie de la tabla
+    Console.ForegroundColor = ConsoleColor.Yellow;
+    Console.WriteLine("╚════╩══════════════╩══════════════════╩════════════════════════╩════════════════╩══════════════════════╩═══════════════════════════╝");
+    // Mostrar el total de vehículos registrados
+    Console.ForegroundColor = ConsoleColor.Green;
+    Console.WriteLine($"\nTotal de vehículos registrados: {i}");
+    Console.ResetColor();
+}
+
+// =====================================================================
+//   OPCIÓN 5: MÓDULO DE AUDITORÍA (REVISIÓN DE SESIONES ANTERIORES)
+// =====================================================================
+void ModuloAuditoria()
+{
+    while (true)
+    {
+        Console.Clear();
+        Console.Write("\x1b[3J");
+        Console.ForegroundColor = ConsoleColor.Cyan;
+        Console.WriteLine("╔══════════════════════════════════════════════════════════════════════╗");
+        Console.WriteLine("║     MÓDULO DE AUDITORÍA: CONTROL DE SESIONES ANTERIORES UAM          ║");
+        Console.WriteLine("╚══════════════════════════════════════════════════════════════════════╝\n");
+        Console.ResetColor();
+
+        //En arreglo almacenamos los archivos csv.
+        string rutaActual = Directory.GetCurrentDirectory();
+        string[] archivosGuardados = Directory.GetFiles(rutaActual, "*.csv");
+        Array.Sort(archivosGuardados, (a, b) => File.GetLastWriteTime(b).CompareTo(File.GetLastWriteTime(a)));
+
+        if (archivosGuardados.Length == 0)
+        {
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine(" >> No se han encontrado registros de sesiones anteriores (.CSV) en el sistema.");
+            Console.ResetColor();
+            break;
+        }
+
+        Console.WriteLine("Seleccione el número del archivo de registro que desea auditar:\n");
+
+        for (int idx = 0; idx < archivosGuardados.Length; idx++)
+        {
+            string nombreLimpio = Path.GetFileNameWithoutExtension(archivosGuardados[idx]);
+            Console.WriteLine($" [{idx + 1}] {nombreLimpio}");
+        }
+
+        //Opcion para volver al menu principal
+        int opcionSalir = archivosGuardados.Length + 1;
+        Console.ForegroundColor = ConsoleColor.DarkGray;
+        Console.WriteLine($" [{opcionSalir}] Volver al Menú Principal");
+        Console.ResetColor();
+        Console.WriteLine("────────────────────────────────────────────────────────────────────");
+
+        // Validamos la seleccion del usuario
+        int seleccion;
+        Console.ForegroundColor = ConsoleColor.Yellow;
+        Console.Write($" >> Digite una opción (1-{opcionSalir}): ");
+        Console.ResetColor();
+        string entrada = Console.ReadLine()!.Trim();
+
+        if (int.TryParse(entrada, out seleccion) && seleccion >= 1 && seleccion <= opcionSalir)
+        {
+            if (seleccion == opcionSalir) break;
+
+            string rutaArchivoElegido = archivosGuardados[seleccion - 1];
+
+            // Limpiamos la pantalla explícitamente antes de cargar el nuevo archivo
+            Console.Clear();
+            Console.Write("\x1b[3J");
+
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine("=====================================================================================================");
+            Console.WriteLine($" VISUALIZANDO HISTORIAL DE AUDITORÍA: {Path.GetFileName(rutaArchivoElegido).ToUpper()}");
+            Console.WriteLine("=====================================================================================================");
+            Console.ResetColor();
+
+            string[] filasHistorial = File.ReadAllLines(rutaArchivoElegido);
+
+            //Validacion de que el archivo no este vacio, por si acaso
+            if (filasHistorial.Length == 0)
+            {
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine("\n >> El archivo seleccionado está vacío.");
+                Console.ResetColor();
+            }
+            else
+            {
+                Console.ForegroundColor = ConsoleColor.White;
+                foreach (string fila in filasHistorial)
+                {
+                    // Si detecta los separadores decorativos del reporte los pinta en la consola
+                    if (fila.StartsWith("===") || fila.StartsWith("---"))
+                    {
+                        Console.ForegroundColor = ConsoleColor.Cyan;
+                        Console.WriteLine($"\n{fila}");
+                        Console.ForegroundColor = ConsoleColor.White;
+                    }
+                    // Mantiene los saltos de linea
+                    else if (string.IsNullOrWhiteSpace(fila))
+                    {
+                        Console.WriteLine();
+                    }
+                    else
+                    {
+                        //Aqui remplazamos los ; por │ para que se vea mas bonito :D
+                        string filaLimpia = fila.Replace(";", " │ ").Replace(",", " │ ");
+                        Console.WriteLine(" " + filaLimpia);
+                    }
+                }
+                Console.ResetColor();
+            }
+
+            Console.WriteLine("Presione cualquier tecla para regresar al listado numérico de auditoría...");
+            Console.ReadKey();
+        }
+        else
+        {
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine("\n >> Error: Selección Inválida. Por favor digite un número correcto de la lista.");
+            Console.ResetColor();
+            Console.WriteLine(" Presione cualquier tecla para reintentar...");
+            Console.ReadKey();
+        }
+    }
+}
+// =====================================================================
+//   OPCIÓN 6: CERRAR TURNO Y GENERAR REPORTES (.CSV)
+// =====================================================================
+bool CerrarTurnoYGenerarReporte()
+{
+    Console.Clear();
+    Console.ForegroundColor = ConsoleColor.Cyan;
+    Console.WriteLine("╔══════════════════════════════════════════════════════════════════════╗");
+    Console.WriteLine("║                 CIERRE DE TURNO Y EXPORTACIÓN DE DATOS               ║");
+    Console.WriteLine("╚══════════════════════════════════════════════════════════════════════╝\n");
+    Console.ResetColor();
+
+    // Validacion inicial
+    if (i == 0)
+    {
+        Console.ForegroundColor = ConsoleColor.Red;
+        Console.WriteLine("  [!] ALERTA: No se puede cerrar el turno ni generar el reporte.");
+        Console.WriteLine("      Debe registrar al menos un (1) vehículo en la bitácora actual.");
+        Console.ResetColor();
+
+        //Evitamos que se cierre el turno cuando no hay registros
+        return false;
+    }
+
+    // === 2. CONFIRMACIÓN DEL USUARIO (Doble check) ===
+    Console.ForegroundColor = ConsoleColor.Yellow;
+    Console.WriteLine("  [?] ATENCIÓN: Está a punto de cerrar su turno actual.");
+    Console.WriteLine("      Esto exportará la bitácora de vehículos y cerrará su sesión de usuario.");
+    Console.Write("\n  ¿Está seguro que desea continuar? (S/N): ");
+    Console.ResetColor();
+
+    string confirmacion = Console.ReadLine()!.Trim().ToUpper();
+
+    if (confirmacion != "S")
+    {
+        // Si digita cualquier cosa que no sea una S se cancela la operacion
+        Console.ForegroundColor = ConsoleColor.DarkGray;
+        Console.WriteLine("\n  [i] Operación cancelada por el usuario.");
+        Console.ResetColor();
+        return false;
+    }
+
+
+    // Aca se captura la hora salida del guardia y calculamos el tiempo trabajado
+    int indiceActual = totalLogins - 1;
+    guardias[indiceActual].horaSalida = DateTime.Now;
+
+    // Crear un variable de tipo TimeSpan para calcular el tiempo trabajado
+    //Nota: TimeSpan es una estructura de C# que representa un intervalo de tiempo, en este caso lo usamos para calcular la duración del turno del guardia.
+    Guardia operador = guardias[indiceActual];
+    TimeSpan tiempoTrabajado = operador.horaSalida.Value - operador.horaInicio;
+
+    // Aqui generamos el nombre del archivo de forma dinamica con el formato: nombre_apellido_fecha_id.csv
+    string nombreLimpio = operador.nombre.Split(' ')[0].ToLower();
+    string apellidoLimpio = operador.apellido.Split(' ')[0].ToLower();
+    string idGuardia = operador.id;
+    string fechaHoy = DateTime.Now.ToString("dd-MM-yyyy");
+
+    string nombreArchivo = $"{nombreLimpio}_{apellidoLimpio}_{fechaHoy}_{idGuardia}.csv";
+
+    try
+    {
+        List<string> lineasCsv = new List<string>();
+
+        lineasCsv.Add("======================================================================================");
+        lineasCsv.Add("                       REPORTE OFICIAL DE CONTROL DE ACCESO UAM                       ");
+        lineasCsv.Add("                                 SISTEMA JAGUAR SECURITY                              ");
+        lineasCsv.Add("======================================================================================");
+        lineasCsv.Add("");
+
+        //Datos del guarda
+        lineasCsv.Add("--- I. DATOS DEL OPERADOR ---");
+        lineasCsv.Add($"Nombre Completo:;{operador.nombre} {operador.apellido}");
+        lineasCsv.Add($"Credencial (ID):;{operador.id}");
+        lineasCsv.Add($"Usuario de Red:;{operador.nombreUsuario}");
+        lineasCsv.Add($"Fecha y Hora de Entrada:;{operador.horaInicio.ToString("dd/MM/yyyy HH:mm:ss")}");
+        lineasCsv.Add($"Fecha y Hora de Salida:;{operador.horaSalida.Value.ToString("dd/MM/yyyy HH:mm:ss")}");
+        lineasCsv.Add($"Duración Total del Turno:;{tiempoTrabajado.Hours} Horas con {tiempoTrabajado.Minutes} Minutos");
+        lineasCsv.Add("");
+
+        // Bitacora de vehciulos registrados
+        lineasCsv.Add("--- II. BITÁCORA DE VEHÍCULOS INGRESADOS ---");
+        lineasCsv.Add("Nº;Placa;Tipo de Vehículo;Conductor;Cédula;Destino;Detalles Adicionales");
+
+        for (int r = 0; r < i; r++)
+        {
+            //Remplazar los ; por que se veian horribles
+            string placa = vehiculos[r].placa.Replace(";", "-");
+            string tipo = vehiculos[r].tipo.Replace(";", "-");
+            string conductor = vehiculos[r].conductor.Replace(";", "-");
+            string cedula = vehiculos[r].cedula.Replace(";", "-");
+            string destino = vehiculos[r].destino.Replace(";", "-");
+            string detalles = vehiculos[r].detalles.Replace(";", "-");
+
+            lineasCsv.Add($"{r + 1};{placa};{tipo};{conductor};{cedula};{destino};{detalles}");
+        }
+        lineasCsv.Add("");
+
+        // Cierre
+        lineasCsv.Add("--- III. RESUMEN DE OPERACIONES ---");
+        lineasCsv.Add($"Total de Vehículos Procesados:;{i}");
+        lineasCsv.Add($"Estado del Turno:;CERRADO Y AUDITADO");
+        lineasCsv.Add("======================================================================================");
+
+        File.WriteAllLines(nombreArchivo, lineasCsv, System.Text.Encoding.UTF8);
+
+        Console.WriteLine("\n──────────────────────────────────────────────────────────────────────");
+        // Animacion Dinamica
+        Console.Write("  Sincronizando datos locales");
+        for (int p = 0; p < 6; p++)
+        {
+            Console.Write(".");
+            Thread.Sleep(200); 
+        }
+        Console.ForegroundColor = ConsoleColor.Green;
+        Console.WriteLine(" [ OK ]");
+        Console.ResetColor();
+
+        // Animacion dinamica
+        Console.Write("  Cerrando turno formalmente ");
+        for (int p = 0; p < 6; p++)
+        {
+            Console.Write(".");
+            Thread.Sleep(200); 
+        }
+        Console.ForegroundColor = ConsoleColor.Green;
+        Console.WriteLine(" [ OK ]");
+        Console.ResetColor();
+
+        // Animacion dinamica
+        Console.Write("  Empaquetando archivo CSV   ");
+        for (int p = 0; p < 6; p++)
+        {
+            Console.Write(".");
+            Thread.Sleep(200);
+        }
+        Console.ForegroundColor = ConsoleColor.Green;
+        Console.WriteLine(" [ OK ]");
+        Console.ResetColor();
+        Console.WriteLine("  El reporte oficial ha sido generado y tabulado correctamente:");
+        Console.ForegroundColor = ConsoleColor.Green;
+        Console.WriteLine($"  >> Directorio actual \\ {nombreArchivo}\n");
+        Console.ResetColor();
+        Console.WriteLine("\n──────────────────────────────────────────────────────────────────────");
+        // Pausamos para que el usuario pueda leer que todo salio perfe
+        Console.WriteLine("\n  Presione CUALQUIER TECLA para cerrar la sesión...");
+        Console.ReadKey();
+
+        // Animacion dinamica
+        Console.Clear();
+        Console.Write("\x1b[3J");
+        Console.ForegroundColor = ConsoleColor.Cyan;
+        Console.Write("CERRANDO SESIÓN Y ENCRIPTANDO DATOS");
+
+        // Bucle para imprimir puntitos uno por uno
+        for (int d = 0; d < 6; d++)
+        {
+            Console.Write(".");
+            Thread.Sleep(350); // Pausa de 350 milisegundos entre cada punto
+        }
+
+        Console.ForegroundColor = ConsoleColor.Green;
+        Console.WriteLine("\n[ SESIÓN FINALIZADA CON ÉXITO ]");
+        Console.ResetColor();
+        Thread.Sleep(1000); 
+
+        return true;//Devolver true para indicar que el turno se cerro
+
+    }
+    catch (Exception ex)
+    {
+        Console.ForegroundColor = ConsoleColor.Red;
+        Console.WriteLine($"\n  [!] ERROR CRÍTICO I/O: No se pudo generar el archivo. {ex.Message}");
+        Console.ResetColor();
+
+        // Si hay un error al escribir el archivo, evitamos cerrar el turno
+        return false;
+    }
+}
+//Nuevo struct para los guardas.
+struct Guardia
+{
+    public string id;
+    public string nombre;
+    public string apellido;
+    public string nombreUsuario;
+    public DateTime horaInicio;
+    public DateTime? horaSalida;
+}
 struct Vehiculo
 {
     public string tipo;
