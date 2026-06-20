@@ -52,7 +52,18 @@ void Main()
                 case 6:
                     Console.Clear();
                     AnimacionCargando("CERRAR TURNO Y GENERAR REPORTES (.CSV)");
-                    CerrarTurnoYGenerarReporte();
+
+                    bool turnoCerradoConExito = CerrarTurnoYGenerarReporte();
+
+                    if (turnoCerradoConExito == false)
+                    {
+                        // Evitamos que se rompa el ciclo cambiando la opción a 0
+                        op = 0;
+
+                        Console.ForegroundColor = ConsoleColor.Yellow;
+                        Console.WriteLine("\n >> Regresando al menú principal de la sesión actual...");
+                        Console.ResetColor();
+                    }
                     break;
                 case 7:
                     Console.Clear();
@@ -261,20 +272,26 @@ void IniciarSesionGuardia()
 // ==========================================
 int menu()
 {
+    // 1. Identificamos al guardia que acaba de iniciar sesión
+    int indiceActual = totalLogins - 1;
+    Guardia operador = guardias[indiceActual];
+
+    // 2. Extraemos solo el primer nombre y primer apellido para que no sea muy largo
+    string primerNombre = operador.nombre.Split(' ')[0].ToUpper();
+    string primerApellido = operador.apellido.Split(' ')[0].ToUpper();
     int opc;
     while (true)
     {
         Console.Clear();
-        // Encabezado decorativo
         Console.ForegroundColor = ConsoleColor.Cyan;
-        Console.WriteLine("╔══════════════════════════════════════════════════════════════════╗");
-        Console.WriteLine("║            SISTEMA DE SEGURIDAD INTEGRAL: JAGUAR V1.0            ║");
-        Console.WriteLine("╚══════════════════════════════════════════════════════════════════╝");
-        Console.ResetColor();
+        Console.WriteLine("╔══════════════════════════════════════════════════════════════════════╗");
+        Console.WriteLine("║                 SISTEMA DE CONTROL JAGUAR SECURITY                   ║");
+        Console.WriteLine("╚══════════════════════════════════════════════════════════════════════╝");
 
-        // Saludo de bienvenida
-        Console.ForegroundColor = ConsoleColor.Yellow;
-        Console.WriteLine($"\n      ¡Hola, oficial {guardias[totalLogins].nombreUsuario}! El sistema está listo para operar.\n");
+        // 3. Imprimimos la barra de bienvenida personalizada
+        Console.ForegroundColor = ConsoleColor.DarkGray;
+        Console.WriteLine($"  OFICIAL EN TURNO: {primerNombre} {primerApellido}  |  CREDENCIAL: {operador.id} | USUARIO: {operador.nombreUsuario}");
+        Console.WriteLine("────────────────────────────────────────────────────────────────────────");
         Console.ResetColor();
 
         // Opciones del menú
@@ -596,7 +613,7 @@ void BuscarVehiculo()
             Console.WriteLine("================================");
 
             encontrado = true;
-            break; // Detiene la búsqueda al encontrarlo
+            break; 
         }
     }
 
@@ -607,7 +624,6 @@ void BuscarVehiculo()
         Console.ResetColor();
     }
 }
-
 
 //OPCION MENU 4: MOSTRAR REGISTROS DE LA SESIÓN ACTUAL
 // ==========================================
@@ -653,7 +669,7 @@ void MostrarRegistros()
         string ced = vehiculos[r].cedula.Length > 14 ? vehiculos[r].cedula.Substring(0, 14) : vehiculos[r].cedula.PadRight(14);
         string dest = vehiculos[r].destino.Length > 20 ? vehiculos[r].destino.Substring(0, 20) : vehiculos[r].destino.PadRight(20);
 
-        // NUEVA COLUMNA(Faltaba por añadirse: Detalles (Límite visual de 25 caracteres)
+        // Nueva columna que faltaba por agregarse en la tabla.
         string det = vehiculos[r].detalles.Length > 25 ? vehiculos[r].detalles.Substring(0, 25) : vehiculos[r].detalles.PadRight(25);
 
         // Imprimir la fila perfectamente alineada
@@ -678,23 +694,27 @@ void ModuloAuditoria()
     {
         Console.Clear();
         Console.ForegroundColor = ConsoleColor.Cyan;
-        Console.WriteLine("====================================================================");
-        Console.WriteLine("      MÓDULO DE AUDITORÍA: CONTROL DE SESIONES ANTERIORES UAM      ");
-        Console.WriteLine("====================================================================");
+        Console.WriteLine("╔══════════════════════════════════════════════════════════════════════╗");
+        Console.WriteLine("║     MÓDULO DE AUDITORÍA: CONTROL DE SESIONES ANTERIORES UAM          ║");
+        Console.WriteLine("╚══════════════════════════════════════════════════════════════════════╝\n");
         Console.ResetColor();
 
+        //En arreglo almacenamos los archivos csv.
         string rutaActual = Directory.GetCurrentDirectory();
         string[] archivosGuardados = Directory.GetFiles(rutaActual, "*.csv");
+        Array.Sort(archivosGuardados, (a, b) => File.GetLastWriteTime(b).CompareTo(File.GetLastWriteTime(a)));
 
         if (archivosGuardados.Length == 0)
         {
             Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine("\n >> No se han encontrado registros de sesiones anteriores (.CSV) en el sistema.");
+            Console.WriteLine(" >> No se han encontrado registros de sesiones anteriores (.CSV) en el sistema.");
             Console.ResetColor();
+            Console.WriteLine("\nPresione cualquier tecla para regresar al menú principal...");
+            Console.ReadKey();
             break;
         }
 
-        Console.WriteLine("\nSeleccione el número del archivo de registro que desea auditar:\n");
+        Console.WriteLine("Seleccione el número del archivo de registro que desea auditar:\n");
 
         for (int idx = 0; idx < archivosGuardados.Length; idx++)
         {
@@ -702,12 +722,14 @@ void ModuloAuditoria()
             Console.WriteLine($" [{idx + 1}] {nombreLimpio}");
         }
 
+        //Opcion para volver al menu principal
         int opcionSalir = archivosGuardados.Length + 1;
         Console.ForegroundColor = ConsoleColor.DarkGray;
         Console.WriteLine($" [{opcionSalir}] Volver al Menú Principal");
         Console.ResetColor();
         Console.WriteLine("────────────────────────────────────────────────────────────────────");
 
+        // Validamos la seleccion del usuario
         int seleccion;
         Console.ForegroundColor = ConsoleColor.Yellow;
         Console.Write($" >> Digite una opción (1-{opcionSalir}): ");
@@ -719,37 +741,47 @@ void ModuloAuditoria()
             if (seleccion == opcionSalir) break;
 
             string rutaArchivoElegido = archivosGuardados[seleccion - 1];
+
+            // Limpiamos la pantalla explícitamente antes de cargar el nuevo archivo
             Console.Clear();
+
             Console.ForegroundColor = ConsoleColor.Green;
             Console.WriteLine("=====================================================================================================");
             Console.WriteLine($" VISUALIZANDO HISTORIAL DE AUDITORÍA: {Path.GetFileName(rutaArchivoElegido).ToUpper()}");
-            Console.WriteLine("=====================================================================================================\n");
+            Console.WriteLine("=====================================================================================================");
             Console.ResetColor();
 
             string[] filasHistorial = File.ReadAllLines(rutaArchivoElegido);
 
+            //Validacion de que el archivo no este vacio, por si acaso
             if (filasHistorial.Length == 0)
             {
                 Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.WriteLine(" >> El archivo seleccionado está vacío.");
+                Console.WriteLine("\n >> El archivo seleccionado está vacío.");
                 Console.ResetColor();
             }
             else
             {
-                // Imprime el contenido con un color sutil para diferenciarlo del menú
                 Console.ForegroundColor = ConsoleColor.White;
                 foreach (string fila in filasHistorial)
                 {
-                    // Si detecta las cabeceras del CSV, las pinta de Cyan para resaltarlas
-                    if (fila.StartsWith("==="))
+                    // Si detecta los separadores decorativos del reporte los pinta en la consola
+                    if (fila.StartsWith("===") || fila.StartsWith("---"))
                     {
                         Console.ForegroundColor = ConsoleColor.Cyan;
                         Console.WriteLine($"\n{fila}");
                         Console.ForegroundColor = ConsoleColor.White;
                     }
+                    // Mantiene los saltos de linea
+                    else if (string.IsNullOrWhiteSpace(fila))
+                    {
+                        Console.WriteLine();
+                    }
                     else
                     {
-                        Console.WriteLine(" " + fila);
+                        //Aqui remplazamos los ; por │ para que se vea mas bonito :D
+                        string filaLimpia = fila.Replace(";", " │ ").Replace(",", " │ ");
+                        Console.WriteLine(" " + filaLimpia);
                     }
                 }
                 Console.ResetColor();
@@ -772,91 +804,112 @@ void ModuloAuditoria()
 // =====================================================================
 //   OPCIÓN 6: CERRAR TURNO Y GENERAR REPORTES (.CSV)
 // =====================================================================
-void CerrarTurnoYGenerarReporte()
+bool CerrarTurnoYGenerarReporte()
 {
     Console.Clear();
     Console.ForegroundColor = ConsoleColor.Cyan;
-    Console.WriteLine("====================================================================");
-    Console.WriteLine("          CERRAR TURNO Y GENERACIÓN DE REPORTE HISTÓRICO (.CSV)     ");
-    Console.WriteLine("====================================================================");
+    Console.WriteLine("╔══════════════════════════════════════════════════════════════════════╗");
+    Console.WriteLine("║                 CIERRE DE TURNO Y EXPORTACIÓN DE DATOS               ║");
+    Console.WriteLine("╚══════════════════════════════════════════════════════════════════════╝\n");
     Console.ResetColor();
 
+    // Validacion inicial
     if (i == 0)
     {
         Console.ForegroundColor = ConsoleColor.Red;
-        Console.WriteLine("\n >> Error: No se puede cerrar el turno ni generar el archivo CSV.");
-        Console.WriteLine("    Debe registrar al menos un (1) vehículo en la sesión actual antes de exportar.");
+        Console.WriteLine("  [!] ALERTA: No se puede cerrar el turno ni generar el reporte.");
+        Console.WriteLine("      Debe registrar al menos un (1) vehículo en la bitácora actual.");
         Console.ResetColor();
-        return;
+
+        //Evitamos que se cierre el turno cuando no hay registros
+        return false;
     }
 
-    // === 1. CAPTURAR AL GUARDIA EN TURNO Y MARCAR SU SALIDA ===
-    // Restamos 1 porque totalLogins ya sumó 1 al terminar el login
+    // Aca se captura la hora salida del guardia y calculamos el tiempo trabajado
     int indiceActual = totalLogins - 1;
-
-    // Registramos la hora exacta en la que está presionando la opción 6
     guardias[indiceActual].horaSalida = DateTime.Now;
 
-    // === 2. FORMATEAR EL NOMBRE DEL ARCHIVO CON LOS DATOS DEL STRUCT ===
-    string nombreLimpio = guardias[indiceActual].nombre.Split(' ')[0].ToLower(); // Solo el primer nombre
-    string apellidoLimpio = guardias[indiceActual].apellido.Split(' ')[0].ToLower(); // Solo el primer apellido
-    string idGuardia = guardias[indiceActual].id; // Ej. SEC-4592
+    // Crear un variable de tipo TimeSpan para calcular el tiempo trabajado
+    //Nota: TimeSpan es una estructura de C# que representa un intervalo de tiempo, en este caso lo usamos para calcular la duración del turno del guardia.
+    Guardia operador = guardias[indiceActual];
+    TimeSpan tiempoTrabajado = operador.horaSalida.Value - operador.horaInicio;
+
+    // Aqui generamos el nombre del archivo de forma dinamica con el formato: nombre_apellido_fecha_id.csv
+    string nombreLimpio = operador.nombre.Split(' ')[0].ToLower();
+    string apellidoLimpio = operador.apellido.Split(' ')[0].ToLower();
+    string idGuardia = operador.id;
     string fechaHoy = DateTime.Now.ToString("dd-MM-yyyy");
 
-    // Nombre de archivo profesional: ej. "jose_baca_19-06-2026_SEC-4592.csv"
     string nombreArchivo = $"{nombreLimpio}_{apellidoLimpio}_{fechaHoy}_{idGuardia}.csv";
 
     try
     {
         List<string> lineasCsv = new List<string>();
 
-        // ORDEN 1: Datos del guarda jalados directamente del Struct
-        lineasCsv.Add("=== DATOS DE APERTURA DE TURNO ===");
-        lineasCsv.Add($"Operador Titular:,{guardias[indiceActual].nombre} {guardias[indiceActual].apellido}");
-        lineasCsv.Add($"Credencial (ID):,{guardias[indiceActual].id}");
-        lineasCsv.Add($"Usuario de Red:,{guardias[indiceActual].nombreUsuario}");
-        // La horaInicio ya estaba guardada desde el login
-        lineasCsv.Add($"Fecha y Hora de Acceso:,{guardias[indiceActual].horaInicio.ToString("dd/MM/yyyy HH:mm:ss")}");
+        lineasCsv.Add("======================================================================================");
+        lineasCsv.Add("                       REPORTE OFICIAL DE CONTROL DE ACCESO UAM                       ");
+        lineasCsv.Add("                                 SISTEMA JAGUAR SECURITY                              ");
+        lineasCsv.Add("======================================================================================");
         lineasCsv.Add("");
 
-        // ORDEN 2: Vehículos
-        lineasCsv.Add("=== VEHÍCULOS CAPTURADOS EN LA BITÁCORA ===");
-        lineasCsv.Add("Nº,Placa,Tipo,Conductor,Cédula,Destino,Detalles");
+        //Datos del guarda
+        lineasCsv.Add("--- I. DATOS DEL OPERADOR ---");
+        lineasCsv.Add($"Nombre Completo:;{operador.nombre} {operador.apellido}");
+        lineasCsv.Add($"Credencial (ID):;{operador.id}");
+        lineasCsv.Add($"Usuario de Red:;{operador.nombreUsuario}");
+        lineasCsv.Add($"Fecha y Hora de Entrada:;{operador.horaInicio.ToString("dd/MM/yyyy HH:mm:ss")}");
+        lineasCsv.Add($"Fecha y Hora de Salida:;{operador.horaSalida.Value.ToString("dd/MM/yyyy HH:mm:ss")}");
+        lineasCsv.Add($"Duración Total del Turno:;{tiempoTrabajado.Hours} Horas con {tiempoTrabajado.Minutes} Minutos");
+        lineasCsv.Add("");
+
+        // Bitacora de vehciulos registrados
+        lineasCsv.Add("--- II. BITÁCORA DE VEHÍCULOS INGRESADOS ---");
+        lineasCsv.Add("Nº;Placa;Tipo de Vehículo;Conductor;Cédula;Destino;Detalles Adicionales");
 
         for (int r = 0; r < i; r++)
         {
-            string placa = vehiculos[r].placa.Replace(",", ";");
-            string tipo = vehiculos[r].tipo.Replace(",", ";");
-            string conductor = vehiculos[r].conductor.Replace(",", ";");
-            string cedula = vehiculos[r].cedula.Replace(",", ";");
-            string destino = vehiculos[r].destino.Replace(",", ";");
-            string detalles = vehiculos[r].detalles.Replace(",", ";");
+            //Remplazar los ; por que se veian horribles
+            string placa = vehiculos[r].placa.Replace(";", "-");
+            string tipo = vehiculos[r].tipo.Replace(";", "-");
+            string conductor = vehiculos[r].conductor.Replace(";", "-");
+            string cedula = vehiculos[r].cedula.Replace(";", "-");
+            string destino = vehiculos[r].destino.Replace(";", "-");
+            string detalles = vehiculos[r].detalles.Replace(";", "-");
 
-            lineasCsv.Add($"{r + 1},{placa},{tipo},{conductor},{cedula},{destino},{detalles}");
+            lineasCsv.Add($"{r + 1};{placa};{tipo};{conductor};{cedula};{destino};{detalles}");
         }
         lineasCsv.Add("");
 
-        // ORDEN 3: Cierre jalando la horaSalida del struct
-        lineasCsv.Add("=== CIERRE DE OPERACIONES ===");
-        lineasCsv.Add($"Fecha y Hora Exacta de Salida:,{guardias[indiceActual].horaSalida.Value.ToString("dd/MM/yyyy HH:mm:ss")}");
-        lineasCsv.Add($"Total de Registros Guardados:,{i} vehículos");
+        // Cierre
+        lineasCsv.Add("--- III. RESUMEN DE OPERACIONES ---");
+        lineasCsv.Add($"Total de Vehículos Procesados:;{i}");
+        lineasCsv.Add($"Estado del Turno:;CERRADO Y AUDITADO");
+        lineasCsv.Add("======================================================================================");
 
         File.WriteAllLines(nombreArchivo, lineasCsv, System.Text.Encoding.UTF8);
 
+        // Mensajes de exito con formato
         Console.ForegroundColor = ConsoleColor.Green;
-        Console.WriteLine("\n ¡TURNO CERRADO Y REPORTE EXPORTADO CORRECTAMENTE!");
+        Console.WriteLine("  [ OK ] Sincronización de datos completada.");
+        Console.WriteLine("  [ OK ] Turno cerrado formalmente en la base de datos local.\n");
         Console.ResetColor();
-        Console.WriteLine(" Se ha generado tu archivo de auditoría con el nombre:");
+
+        Console.WriteLine("  El reporte oficial ha sido generado y tabulado correctamente:");
         Console.ForegroundColor = ConsoleColor.Yellow;
-        Console.WriteLine($" >> {nombreArchivo}");
+        Console.WriteLine($"  >> Directorio actual \\ {nombreArchivo}\n");
         Console.ResetColor();
-        Console.WriteLine("\n Los datos de la sesión actual se han respaldado de forma segura.");
+
+        //Devolver true despues de generar el archivo
+        return true;
     }
     catch (Exception ex)
     {
         Console.ForegroundColor = ConsoleColor.Red;
-        Console.WriteLine($"\n >> Error Crítico de escritura: No se pudo generar el archivo. {ex.Message}");
+        Console.WriteLine($"\n  [!] ERROR CRÍTICO I/O: No se pudo generar el archivo. {ex.Message}");
         Console.ResetColor();
+
+        // Si hay un error al escribir el archivo, evitamos cerrar el turno
+        return false;
     }
 }
 //Nuevo struct para los guardas.
