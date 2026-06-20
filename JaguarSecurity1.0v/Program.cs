@@ -17,6 +17,7 @@ void Main()
 
         do
         {
+                        
             // Llamamos a la función menu y guardamos el resultado en 'op'
             op = menu();
 
@@ -283,6 +284,7 @@ int menu()
     while (true)
     {
         Console.Clear();
+        Console.Write("\x1b[3J");
         Console.ForegroundColor = ConsoleColor.Cyan;
         Console.WriteLine("╔══════════════════════════════════════════════════════════════════════╗");
         Console.WriteLine("║                 SISTEMA DE CONTROL JAGUAR SECURITY                   ║");
@@ -693,6 +695,7 @@ void ModuloAuditoria()
     while (true)
     {
         Console.Clear();
+        Console.Write("\x1b[3J");
         Console.ForegroundColor = ConsoleColor.Cyan;
         Console.WriteLine("╔══════════════════════════════════════════════════════════════════════╗");
         Console.WriteLine("║     MÓDULO DE AUDITORÍA: CONTROL DE SESIONES ANTERIORES UAM          ║");
@@ -744,6 +747,7 @@ void ModuloAuditoria()
 
             // Limpiamos la pantalla explícitamente antes de cargar el nuevo archivo
             Console.Clear();
+            Console.Write("\x1b[3J");
 
             Console.ForegroundColor = ConsoleColor.Green;
             Console.WriteLine("=====================================================================================================");
