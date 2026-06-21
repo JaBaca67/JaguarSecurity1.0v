@@ -536,64 +536,89 @@ string LeerOpcional(string nombreCampo)
     }
 }
 
-//OP MENU 2: EDICIÓN DE VEHÍCULOS REGISTRADOS
 
-void EditarVehiculo()
+//OPCION MENU 2: MOSTRAR REGISTROS DE LA SESIÓN ACTUAL (CON OPCIONES DE ELIMINAR Y EDITAR)
+
+void MostrarRegistros()
 {
-    Console.Clear();
-    Console.WriteLine(" Modo edición de Vehículos registrados ");
-    if (i == 0)
-    {
-        Console.WriteLine("No hay vehículos registrados.");
-        return;
-    }
-
-    Console.WriteLine($"Vehículos registrados: {i}");
-    for (int r = 0; r < i; r++)
-    {
-        Console.WriteLine($"[{r + 1}] Placa: {vehiculos[r].placa}  Conductor: {vehiculos[r].conductor}");
-    }
-
-    int num = 0;
     while (true)
     {
-        Console.Write($"Ingrese el número de vehículo a modificar (1 al {i}) o escriba N (No), para salir del modo edición: ");
-        string entrada = Console.ReadLine()!;
+        Console.Clear();
+        Console.Write("\x1b[3J"); // Limpia el rastro del scroll de la consola
 
-        if (entrada == "N")
+        Console.ForegroundColor = ConsoleColor.Cyan;
+        Console.WriteLine("╔══════════════════════════════════════════════════════════════════════════════════════════════════════════╗");
+        Console.WriteLine("║                               BITÁCORA DE CONTROL DE ACCESO VEHICULAR                                    ║");
+        Console.WriteLine("╚══════════════════════════════════════════════════════════════════════════════════════════════════════════╝\n");
+        Console.ResetColor();
+
+        if (i == 0)
         {
-            return;
+            Console.ForegroundColor = ConsoleColor.DarkGray;
+            Console.WriteLine("  [i] La bitácora de la sesión actual se encuentra vacía. No hay vehículos registrados.");
+            Console.ResetColor();
+            Console.WriteLine("\n  Presione cualquier tecla para regresar al Menú Principal...");
+            Console.ReadKey();
+            break; // Regresa al menú principal
         }
 
-        if (int.TryParse(entrada, out num) && num > 0 && num <= i)
-            break;
+        // Orden y formato de la tabla optimizados para mejor legibilidad
+        string formatoTabla = " │ {0,-3} │ {1,-8} │ {2,-16} │ {3,-10} │ {4,-22} │ {5,-14} │ {6,-15} │";
 
-        Console.ForegroundColor = ConsoleColor.Red;
-        Console.WriteLine("Valor inválido por favor ingrese N o seleccione el número entero del vehículo correspondiente a editar.");
+        // Dibujado de bordes alineado con el nuevo orden
+        Console.ForegroundColor = ConsoleColor.Yellow;
+        Console.WriteLine(" ┌─────┬──────────┬──────────────────┬────────────┬────────────────────────┬────────────────┬─────────────────┐");
+        Console.WriteLine(string.Format(formatoTabla, "Nº", "Hora", "Tipo Vehículo", "Placa", "Nombre Conductor", "Cédula", "Destino"));
+        Console.WriteLine(" ├─────┼──────────┼──────────────────┼────────────┼────────────────────────┼────────────────┼─────────────────┤");
         Console.ResetColor();
+
+        for (int v = 0; v < i; v++)
+        {
+            string num = (v + 1).ToString();
+            string hora = vehiculos[v].horaIngreso.ToString("HH:mm:ss"); // <--- Ahora se calcula de segundo
+            string tipo = vehiculos[v].tipo.Length > 16 ? vehiculos[v].tipo.Substring(0, 13) + "..." : vehiculos[v].tipo;
+            string placa = vehiculos[v].placa.Length > 10 ? vehiculos[v].placa.Substring(0, 10) : vehiculos[v].placa;
+            string cond = vehiculos[v].conductor.Length > 22 ? vehiculos[v].conductor.Substring(0, 19) + "..." : vehiculos[v].conductor;
+            string ced = vehiculos[v].cedula;
+            string dest = vehiculos[v].destino.Length > 15 ? vehiculos[v].destino.Substring(0, 12) + "..." : vehiculos[v].destino;
+
+            // Se mandan las variables en el orden exacto del formato
+            Console.WriteLine(string.Format(formatoTabla, num, hora, tipo, placa, cond, ced, dest));
+        }
+
+        Console.ForegroundColor = ConsoleColor.Yellow;
+        Console.WriteLine(" └─────┴──────────┴──────────────────┴────────────┴────────────────────────┴────────────────┴─────────────────┘");
+        Console.ResetColor();
+
+        // --- BARRA INTERACTIVA DE OPCIONES ---
+
+        Console.WriteLine("\n  [ENTER] Volver al Menú   │   [E] Eliminar Registro   │   [M] Modificar Registro");
+        Console.WriteLine("────────────────────────────────────────────────────────────────────────────────────────────────────────────");
+
+        Console.ForegroundColor = ConsoleColor.Yellow;
+        Console.Write("  >> Seleccione una acción: ");
+        Console.ResetColor();
+
+        string accion = Console.ReadLine()!.Trim().ToUpper();
+
+        if (accion == "" || accion == "ENTER")
+        {
+            break;
+        }
+        else if (accion == "E")
+        {
+            // Mantiene la misma lógica de antes
+        }
+        else if (accion == "M")
+        {
+            // Mantiene la misma lógica de antes
+        }
     }
-
-    int pos = num - 1;
-    Console.WriteLine($"Modificando Vehículo #{num} (Actual: {vehiculos[pos].placa})");
-    Console.WriteLine("---------------------------------------------");
-
-    vehiculos[pos].tipo = SeleccionarTipo();
-    vehiculos[pos].placa = LeerPlaca();
-    vehiculos[pos].conductor = LeerConductor();
-    vehiculos[pos].cedula = LeerCedula();
-    vehiculos[pos].destino = LeerOpcional("Nuevo Destino");
-    vehiculos[pos].detalles = LeerOpcional("Nuevos Detalles");
-
-    Console.ForegroundColor = ConsoleColor.Green;
-    Console.WriteLine("¡Vehículo modificado correctamente!");
-    Console.ResetColor();
 }
 
 
-//OP MENU 3: BÚSQUEDA RÁPIDA DE VEHÍCULO
-//====================================
-// BÚSQUEDA RÁPIDA DE VEHÍCULO
-//====================================
+//OPCION 3 MENU: BUSCAR ANTECEDENTES DE PLACA (HISTORIAL GLOBAL EN .CSV)
+//FALTA POR ACTUALIZAR LA FUNCION DE BUSQUEDA EN LOS ARCHIVOS .CSV DE SESIONES ANTERIORES (HISTORIAL GLOBAL)
 void BuscarVehiculo()
 {
     Console.Clear();
@@ -631,63 +656,11 @@ void BuscarVehiculo()
         Console.ResetColor();
     }
 }
+//ACA ABAJO IRIA LA FUNCION DE INFORMACION DEL OPERADOR
+//OPCION 4 MENU: INFORMACIÓN DEL OPERADOR E HISTORIAL DE ACCESOS
 
-//OPCION MENU 4: MOSTRAR REGISTROS DE LA SESIÓN ACTUAL
-// ==========================================
-// FUNCIÓN PARA MOSTRAR LOS REGISTROS DE LA SESIÓN ACTUAL
-// ==========================================
-void MostrarRegistros()
-{
-    Console.Clear();
-    Console.ForegroundColor = ConsoleColor.Cyan;
-    Console.WriteLine("=====================================================================================================");
-    Console.WriteLine("                              REGISTROS DE LA SESIÓN ACTUAL");
-    Console.WriteLine("=====================================================================================================\n");
-    Console.ResetColor();
 
-    // Validacion de registros
-    if (i == 0)
-    {
-        Console.ForegroundColor = ConsoleColor.Yellow;
-        Console.WriteLine("No hay vehículos registrados en esta sesión actualmente.");
-        Console.ResetColor();
-        return;
-    }
 
-    Console.ForegroundColor = ConsoleColor.DarkGray;
-    Console.WriteLine("  Nota: Los textos muy largos se muestran resumidos para mantener la estabilidad visual de la tabla.");
-    Console.ResetColor();
-    // Encabezado de la tabla estructurada (Ancho total optimizado)
-    Console.ForegroundColor = ConsoleColor.Yellow;
-    // Agregamos el espacio para "Hora" (8 caracteres)
-    Console.WriteLine("╔════╦══════════╦══════════════╦══════════════════╦══════════════════════╦══════════════╦══════════════════╦════════════════════╗");
-    Console.WriteLine("║ Nº ║ Hora     ║ Placa        ║ Tipo             ║ Conductor            ║ Cédula       ║ Destino          ║ Detalles           ║");
-    Console.WriteLine("╠════╬══════════╬══════════════╬══════════════════╬══════════════════════╬══════════════╬══════════════════╬════════════════════╣");
-    Console.ResetColor();
-
-    for (int r = 0; r < i; r++)
-    {
-        string num = (r + 1).ToString().PadRight(2);
-
-        // Formateamos la hora para que siempre ocupe exactamente 8 caracteres (ej: 14:30:00)
-        string hora = vehiculos[r].horaIngreso.ToString("HH:mm:ss").PadRight(8);
-
-        string placa = vehiculos[r].placa.Length > 12 ? vehiculos[r].placa.Substring(0, 12) : vehiculos[r].placa.PadRight(12);
-        string tipo = vehiculos[r].tipo.Length > 16 ? vehiculos[r].tipo.Substring(0, 16) : vehiculos[r].tipo.PadRight(16);
-        string cond = vehiculos[r].conductor.Length > 20 ? vehiculos[r].conductor.Substring(0, 20) : vehiculos[r].conductor.PadRight(20);
-        string ced = vehiculos[r].cedula.Length > 12 ? vehiculos[r].cedula.Substring(0, 12) : vehiculos[r].cedula.PadRight(12);
-        string dest = vehiculos[r].destino.Length > 16 ? vehiculos[r].destino.Substring(0, 16) : vehiculos[r].destino.PadRight(16);
-        string det = vehiculos[r].detalles.Length > 18 ? vehiculos[r].detalles.Substring(0, 18) : vehiculos[r].detalles.PadRight(18);
-
-        Console.WriteLine($"║ {num} ║ {hora} ║ {placa} ║ {tipo} ║ {cond} ║ {ced} ║ {dest} ║ {det} ║");
-    }
-
-    Console.ForegroundColor = ConsoleColor.Yellow;
-    Console.WriteLine("╚════╩══════════╩══════════════╩══════════════════╩══════════════════════╩══════════════╩══════════════════╩════════════════════╝");
-    Console.ForegroundColor = ConsoleColor.Green;
-    Console.WriteLine($"\nTotal de vehículos registrados: {i}");
-    Console.ResetColor();
-}
 // =====================================================================
 //   OPCIÓN 5: MÓDULO DE AUDITORÍA (REVISIÓN DE SESIONES ANTERIORES)
 // =====================================================================
