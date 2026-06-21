@@ -31,23 +31,25 @@ void Main()
                     break;
                 case 2:
                     Console.Clear();
-                    AnimacionCargando("EDITAR VEHICULOS REGISTRADOS");
-                    EditarVehiculo();
+                    AnimacionCargando("VER BITÁCORA ACTUAL (VISUALIZAR, ELIMINAR O EDITAR)");
+                    MostrarRegistros();
+                    //Pediente agregar función para eliminar o editar registros específicos dentro de la sesión actual
                     break;
                 case 3:
                     Console.Clear();
-                    AnimacionCargando("BÚSQUEDA RÁPIDA DE VEHÍCULO");
+                    AnimacionCargando("BUSCAR ANTECEDENTES DE PLACA (HISTORIAL GLOBLAL EN .CSV");
                     BuscarVehiculo();
+                    //Pendiente activar función para buscar en archivos .CSV de sesiones anteriores (historial global)
                     break;
                 case 4:
                     Console.Clear();
-                    AnimacionCargando("MOSTRAR REGISTROS DE LA SESIÓN ACTUAL");
-                    MostrarRegistros();
+                    AnimacionCargando("INFORMACIÓN DEL OPERADOR E HISTORIAL DE ACCESOS");
+                    //Pediente Agregar función para mostrar información del operador e historial de accesos
 
                     break;
                 case 5:
                     Console.Clear();
-                    AnimacionCargando("MÓDULO DE AUDITORÍA");
+                    AnimacionCargando("MÓDULO DE AUDITORÍA (REVISIÓN DE SESIONES ANTERIORES)");
                     ModuloAuditoria();
                     break;
                 case 6:
@@ -299,15 +301,15 @@ int menu()
         Console.ResetColor();
 
         // Opciones del menú
-        Console.WriteLine("1. REGISTRAR INGRESO VEHICULAR SELECTIVO");
-        Console.WriteLine("2. EDITAR VEHICULOS REGISTRADOS");
-        Console.WriteLine("3. BÚSQUEDA RÁPIDA DE VEHÍCULO");
-        Console.WriteLine("4. MOSTRAR REGISTROS DE LA SESIÓN ACTUAL");
-        Console.WriteLine("5. MÓDULO DE AUDITORÍA (REVISIÓN DE SESIONES ANTERIORES)");
-        Console.WriteLine("6. CERRAR TURNO Y GENERAR REPORTES (.CSV)");
-        Console.WriteLine("7. SALIR DEL PROGRAMA");
+        Console.WriteLine("[1] REGISTRAR INGRESO VEHICULAR SELECTIVO");
+        Console.WriteLine("[2] VER BITÁCORA ACTUAL (VISUALIZAR, ELIMINAR O EDITAR)");
+        Console.WriteLine("[3] BUSCAR ANTECEDENTES DE PLACA (HISTORIAL GLOBLAL EN .CSV");
+        Console.WriteLine("[4] INFORMACIÓN DEL OPERADOR E HISTORIAL DE ACCESOS");
+        Console.WriteLine("[5] MÓDULO DE AUDITORÍA (REVISIÓN DE SESIONES ANTERIORES)");
+        Console.WriteLine("[6] CERRAR TURNO Y GENERAR REPORTES (.CSV)");
+        Console.WriteLine("\n[7] SALIR DEL PROGRAMA");
         Console.WriteLine("\n────────────────────────────────────────────────────────────────────");
-        Console.Write(" >>Digita tu opción (1-7): ");
+        Console.Write(" >>Seleccione una opcion (1-7): ");
 
         // Intenta convertir la entrada a número y valida que esté en el rango correcto
         if (int.TryParse(Console.ReadLine()!, out opc) && opc >= 1 && opc <= 7)
