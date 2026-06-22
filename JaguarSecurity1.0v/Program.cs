@@ -12,17 +12,6 @@ void InformacionOperadorHistorialAccesos()
     Console.WriteLine(" ╚═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝\n");
     Console.ResetColor();
 
-    if (totalLogins == 0)
-    {
-        Console.ForegroundColor = ConsoleColor.Yellow;
-        Console.WriteLine("  [i] El historial de accesos se encuentra vacío en este momento.");
-        Console.WriteLine("      Aún no se ha registrado ningún turno en el sistema el día de hoy.");
-        Console.ResetColor();
-        Console.WriteLine("\n  Presione cualquier tecla para regresar al Menú Principal...");
-        Console.ReadKey();
-        return;
-    }
-
     int indiceActual = totalLogins - 1;
     Guardia operadorActual = guardias[indiceActual];
 
@@ -110,8 +99,4 @@ void InformacionOperadorHistorialAccesos()
             Console.WriteLine(" └────┴───────────────────┴────────────┴──────────┴──────────┴────────────────┴──────────────────────┴──────────────────────┘");
         }
     }
-
-    Console.ResetColor();
-    Console.WriteLine("\n  Presione cualquier tecla para regresar al Menú Principal...");
-    Console.ReadKey();
 }
