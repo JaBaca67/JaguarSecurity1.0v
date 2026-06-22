@@ -1,72 +1,59 @@
-﻿void BuscarVehiculo()
+﻿void BuscarPorPlaca()
 {
     Console.Clear();
-    Console.WriteLine("=== BÚSQUEDA RÁPIDA DE VEHÍCULO ===");
+    Console.Write("\x1b[3J");
+
+    Console.ForegroundColor = ConsoleColor.Cyan;
+    Console.WriteLine("╔══════════════════════════════════════════════════════════════════════╗");
+    Console.WriteLine("║             CONSULTA DE ANTECEDENTES POR PLACA VEHICULAR            ║");
+    Console.WriteLine("╚══════════════════════════════════════════════════════════════════════╝");
+    Console.ResetColor();
 
     if (i == 0)
     {
         Console.ForegroundColor = ConsoleColor.Yellow;
-        Console.WriteLine("No hay vehículos registrados.");
+        Console.WriteLine("\n  [i] No existen registros en la sesión actual.");
         Console.ResetColor();
         return;
     }
 
-    Console.Write("Ingrese la placa del vehículo a buscar: ");
-    string placaBuscar = Console.ReadLine()!;
+    Console.ForegroundColor = ConsoleColor.Yellow;
+    Console.Write("\n  >> Ingrese la placa a consultar: ");
+    Console.ResetColor();
+
+    string placaBuscada = Console.ReadLine()!.Trim().ToUpper();
 
     bool encontrado = false;
 
-    for (int r = 0; r < i; r++)
+    for (int j = 0; j < i; j++)
     {
-        if (vehiculos[r].placa.ToUpper() == placaBuscar.ToUpper())
+        if (vehiculos[j].placa != null &&
+            vehiculos[j].placa.ToUpper() == placaBuscada)
         {
             encontrado = true;
 
+            Guardia operadorActual = guardias[totalLogins - 1];
+
+            Console.WriteLine();
+
             Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine("\nVehículo encontrado:");
+            Console.WriteLine("╔══════════════════════════════════════════════════════════════════════╗");
+            Console.WriteLine("║                     REGISTRO VEHICULAR ENCONTRADO                   ║");
+            Console.WriteLine("╚══════════════════════════════════════════════════════════════════════╝");
             Console.ResetColor();
 
-            Console.WriteLine($"Tipo      : {vehiculos[r].tipo}");
-            Console.WriteLine($"Placa     : {vehiculos[r].placa}");
-            Console.WriteLine($"Conductor : {vehiculos[r].conductor}");
-            Console.WriteLine($"Cédula    : {vehiculos[r].cedula}");
-            Console.WriteLine($"Destino   : {vehiculos[r].destino}");
-            Console.WriteLine($"Detalles  : {vehiculos[r].detalles}");
+            Console.WriteLine($"  ├─ Placa                : {vehiculos[j].placa}");
+            Console.WriteLine($"  ├─ Conductor            : {vehiculos[j].conductor}");
+            Console.WriteLine($"  ├─ Cédula               : {vehiculos[j].cedula}");
+            Console.WriteLine($"  ├─ Destino              : {vehiculos[j].destino}");
+            Console.WriteLine($"  ├─ Detalles             : {vehiculos[j].detalles}");
+            Console.WriteLine($"  ├─ Hora de Ingreso      : {vehiculos[j].horaIngreso:dd/MM/yyyy - HH:mm:ss}");
+            Console.WriteLine($"  └─ Registrado por       : {operadorActual.nombre} {operadorActual.apellido}");
 
-            string opcion;
-            do
-            {
-                Console.Write("\n¿Desea eliminar este vehículo? (S/N): ");
-                opcion = Console.ReadLine()!.ToUpper();
-
-                if (opcion == "S")
-                {
-                    // Desplazar todos los registros una posición hacia atrás
-                    for (int j = r; j < i - 1; j++)
-                    {
-                        vehiculos[j] = vehiculos[j + 1];
-                    }
-
-                    // Limpiar la última posición
-                    vehiculos[i - 1] = new Vehiculo();
-                    i--;
-
-                    Console.ForegroundColor = ConsoleColor.Green;
-                    Console.WriteLine("\nVehículo eliminado correctamente.");
-                    Console.ResetColor();
-                }
-                else if (opcion == "N")
-                {
-                    Console.WriteLine("\nNo se eliminó el vehículo.");
-                }
-                else
-                {
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Console.WriteLine("Opción inválida. Ingrese únicamente S o N.");
-                    Console.ResetColor();
-                }
-
-            } while (opcion != "S" && opcion != "N");
+            Console.ForegroundColor = ConsoleColor.DarkGray;
+            Console.WriteLine("\n──────────────────────────────────────────────────────────────────────");
+            Console.WriteLine(" Estado del registro: ACTIVO EN BITÁCORA ACTUAL");
+            Console.ResetColor();
 
             break;
         }
@@ -75,7 +62,7 @@
     if (!encontrado)
     {
         Console.ForegroundColor = ConsoleColor.Red;
-        Console.WriteLine("\nNo se encontró ningún vehículo con esa placa.");
+        Console.WriteLine("\n  [!] No se encontró ningún registro asociado a esa placa.");
         Console.ResetColor();
     }
 }
