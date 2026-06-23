@@ -278,11 +278,9 @@ void IniciarSesionGuardia()
 // ==========================================
 int menu()
 {
-    // 1. Identificamos al guardia que acaba de iniciar sesión
     int indiceActual = totalLogins - 1;
     Guardia operador = guardias[indiceActual];
 
-    // 2. Extraemos solo el primer nombre y primer apellido para que no sea muy largo
     string primerNombre = operador.nombre.Split(' ')[0].ToUpper();
     string primerApellido = operador.apellido.Split(' ')[0].ToUpper();
     int opc;
@@ -295,7 +293,7 @@ int menu()
         Console.WriteLine("║                 SISTEMA DE CONTROL JAGUAR SECURITY                   ║");
         Console.WriteLine("╚══════════════════════════════════════════════════════════════════════╝");
 
-        // 3. Imprimimos la barra de bienvenida personalizada
+        //Imprimimos la barra de bienvenida personalizada
         Console.ForegroundColor = ConsoleColor.DarkGray;
         Console.WriteLine($"  OFICIAL EN TURNO: {primerNombre} {primerApellido}  |  CREDENCIAL: {operador.id} | USUARIO: {operador.nombreUsuario}");
         Console.WriteLine("────────────────────────────────────────────────────────────────────────");
@@ -312,7 +310,7 @@ int menu()
         Console.WriteLine("\n────────────────────────────────────────────────────────────────────");
         Console.Write(" >>Seleccione una opcion (1-7): ");
 
-        // Intenta convertir la entrada a número y valida que esté en el rango correcto
+        // Intenta convertir la entrada a numero y valida que esté en el rango correcto
         if (int.TryParse(Console.ReadLine()!, out opc) && opc >= 1 && opc <= 7)
         {
             return opc; // Retorna la opción válida y rompe el bucle interno
@@ -430,7 +428,6 @@ string SeleccionarTipo()
 
     while (true)
     {
-
         LimpiarAreaConsola(lineaInicio);
 
         Console.ForegroundColor = ConsoleColor.Green;
@@ -450,7 +447,6 @@ string SeleccionarTipo()
 
             while (true)
             {
-
                 LimpiarAreaConsola(lineaOtro);
 
                 Console.ForegroundColor = ConsoleColor.Yellow;
@@ -468,21 +464,19 @@ string SeleccionarTipo()
                 bool soloLetras = true;
                 foreach (char c in otro)
                 {
-                    // Si NO es una letra Y tampoco es un espacio, el texto es inválido
-                    if (!char.IsLetter(c) && c != ' ')
+                    if (!char.IsLetter(c) && c != ' ') // Sino no esta letra o tiene espacios
                     {
                         soloLetras = false;
-                        break; // Rompemos el foreach, ya encontramos un error
+                        break; 
                     }
                 }
 
                 if (!soloLetras)
                 {
                     MostrarError("Entrada inválida. Solo se aceptan letras y espacios (no números ni símbolos).");
-                    continue; // Reinicia el sub-bucle para volver a preguntar
+                    continue; 
                 }
 
-                // Si pasó ambas validaciones, guardamos el tipo en Mayúsculas para el reporte
                 return otro;
 
             }
@@ -512,15 +506,14 @@ string LeerPlaca()
             continue;
         }
 
-        // 2. Validación de "Solo Letras y Números" (Alfanumérico)
+        //Validacion 
         bool esAlfanumerico = true;
         foreach (char c in entrada)
         {
-            // Si NO es letra Y tampoco es dígito, es un carácter raro prohibido
-            if (!char.IsLetterOrDigit(c))
+            if (!char.IsLetterOrDigit(c)) // Su no es letra ni digito, entonces es un caracter especial
             {
                 esAlfanumerico = false;
-                break; // Rompemos el ciclo inmediatamente al detectar el fallo
+                break; 
             }
         }
 
@@ -532,20 +525,18 @@ string LeerPlaca()
 
         string placaMayuscula = entrada.ToUpper();
 
-        // Borramos por completo la línea donde el usuario escribió originalmente en minúsculas
+        // Volvemos a pintar exactamente la misma pregunta
         LimpiarAreaConsola(lineaInicio);
 
-        // Volvemos a pintar exactamente la misma pregunta en el mismo renglón
         Console.ForegroundColor = ConsoleColor.Yellow;
         Console.Write("\n>> Placa del vehículo (Máx 15 caracteres, ej: M123456): ");
         Console.ResetColor();
 
-        // Imprimimos la placa YA convertida a Mayúsculas al lado de la pregunta
         Console.ForegroundColor = ConsoleColor.Cyan; // Color celeste para datos ya aprobados
         Console.WriteLine(placaMayuscula);
         Console.ResetColor();
 
-        // Retornamos el valor final corregido al sistema
+
         return placaMayuscula;
     }
 }
@@ -713,8 +704,6 @@ string LeerOpcional(string nombreCampo)
             MostrarError("Texto inválido. No se permiten símbolos especiales (@, #, $, -, _, etc.). Solo use letras, números, espacios, puntos o comas.");
             continue;
         }
-
-        // Borramos la línea original de escritura
         LimpiarAreaConsola(lineaInicio);
 
         // Volvemos a pintar la pregunta limpia
@@ -722,7 +711,6 @@ string LeerOpcional(string nombreCampo)
         Console.Write($"\n  ► {nombreCampo} (Escriba N/A para omitir): ");
         Console.ResetColor();
 
-        // Imprimimos el texto exacto tal y como lo escribió el usuario en color Celeste
         Console.ForegroundColor = ConsoleColor.Cyan;
         Console.WriteLine(entrada);
         Console.ResetColor();
@@ -777,7 +765,7 @@ void MostrarRegistros()
         for (int v = 0; v < i; v++)
         {
             string num = (v + 1).ToString();
-            string hora = vehiculos[v].horaIngreso.ToString("HH:mm:ss"); // <--- Ahora se calcula de segundo
+            string hora = vehiculos[v].horaIngreso.ToString("HH:mm:ss"); //Convertimos la hora a este formato
             string tipo = vehiculos[v].tipo.Length > 16 ? vehiculos[v].tipo.Substring(0, 13) + "..." : vehiculos[v].tipo;
             string placa = vehiculos[v].placa.Length > 10 ? vehiculos[v].placa.Substring(0, 10) : vehiculos[v].placa;
             string cond = vehiculos[v].conductor.Length > 22 ? vehiculos[v].conductor.Substring(0, 19) + "..." : vehiculos[v].conductor;
@@ -792,9 +780,7 @@ void MostrarRegistros()
         Console.WriteLine(" └─────┴──────────┴──────────────────┴────────────┴────────────────────────┴────────────────┴─────────────────┘");
         Console.ResetColor();
 
-        // --- BARRA INTERACTIVA DE OPCIONES ---
-
-        Console.WriteLine("\n  [ENTER] Volver al Menú   │   [E] Eliminar Registro   │   [M] Modificar Registro");
+        Console.WriteLine("\n  [ENTER] Volver al Menú   │   [E] Eliminar Registro   │   [M] Modificar Registro");//Barra de opciones
         Console.WriteLine("────────────────────────────────────────────────────────────────────────────────────────────────────────────");
 
         Console.ForegroundColor = ConsoleColor.Yellow;
@@ -896,8 +882,6 @@ void SubProcesoEliminar()
         Console.WriteLine("  Presione ENTER para reintentar...");
         Console.ReadKey();
 
-        // Pausa para que lea el error. Al reiniciar el bucle, tu LimpiarAreaConsola borrará este mensaje.
-
     }
 }
 
@@ -973,7 +957,6 @@ void EditarVehiculo()
     Console.ResetColor();
 }
 
-
 // =====================================================================
 // OPCIÓN 3 MENU: BUSCAR ANTECEDENTES DE PLACA (HISTORIAL GLOBAL EN .CSV)
 // =====================================================================
@@ -1006,22 +989,22 @@ void BuscarVehiculo()
     Thread.Sleep(600);
 
     // Formato de tabla adaptado para 9 columnas. El índice {8} (Origen) tiene un margen amplio de 32 para no cortar el texto.
-    string formatoBusqueda = " │ {0,-5} │ {1,-8} │ {2,-10} │ {3,-16} │ {4,-16} │ {5,-14} │ {6,-12} │ {7,-15} │ {8,-32} │";
+    string formatoBusqueda = " │ {0,-5} │ {1,-8} │ {2,-10} │ {3,-16} │ {4,-16} │ {5,-14} │ {6,-12} │ {7,-15} │ {8,-50} │";
     bool seEncontraronResultados = false;
 
     void DibujarEncabezadoTabla()
     {
         Console.ForegroundColor = ConsoleColor.Yellow;
-        Console.WriteLine(" ┌───────┬──────────┬────────────┬──────────────────┬──────────────────┬────────────────┬──────────────┬─────────────────┬──────────────────────────────────┐");
-        Console.WriteLine(string.Format(formatoBusqueda, "Nº", "Hora", "Placa", "Tipo Vehículo", "Conductor", "Cédula", "Destino", "Detalles", "Origen del Dato"));
-        Console.WriteLine(" ├───────┼──────────┼────────────┼──────────────────┼──────────────────┼────────────────┼──────────────┼─────────────────┼──────────────────────────────────┤");
+        Console.WriteLine(" ┌───────┬──────────┬────────────┬──────────────────┬──────────────────┬────────────────┬──────────────┬─────────────────┬────────────────────────────────────────────────────┐");
+        Console.WriteLine(string.Format(formatoBusqueda, "Nº", "Hora", "Placa", "Tipo Vehículo", "Conductor", "Cédula", "Destino", "Detalles", "Origen del Dato (Archivo)"));
+        Console.WriteLine(" ├───────┼──────────┼────────────┼──────────────────┼──────────────────┼────────────────┼──────────────┼─────────────────┼────────────────────────────────────────────────────┤");
         Console.ResetColor();
     }
 
     void DibujarPieTabla()
     {
         Console.ForegroundColor = ConsoleColor.Yellow;
-        Console.WriteLine(" └───────┴──────────┴────────────┴──────────────────┴──────────────────┴────────────────┴──────────────┴─────────────────┴──────────────────────────────────┘");
+        Console.WriteLine(" └───────┴──────────┴────────────┴──────────────────┴──────────────────┴────────────────┴──────────────┴─────────────────┴────────────────────────────────────────────────────┘");
         Console.ResetColor();
     }
 
@@ -1038,8 +1021,8 @@ void BuscarVehiculo()
             }
             else
             {
-                //Cada que encuentre otro resultado agrega una linea entre medio.
-                Console.WriteLine(" ├───────┼──────────┼────────────┼──────────────────┼──────────────────┼────────────────┼──────────────┼─────────────────┼──────────────────────────────────┤");
+                //Cada que encuentre otro resultado agrega una linea en medio.
+                Console.WriteLine(" ├───────┼──────────┼────────────┼──────────────────┼──────────────────┼────────────────┼──────────────┼─────────────────┼────────────────────────────────────────────────────┤");
             }
             string num = (v + 1).ToString();
             string horaFormateada = vehiculos[v].horaIngreso.ToString("HH:mm:ss");
@@ -1076,7 +1059,6 @@ void BuscarVehiculo()
                 // Aseguramos que haya datos suficientes en la línea
                 if (columnas.Length >= 5)
                 {
-                    // ¡CORRECCIÓN AQUÍ! La placa en tus CSV actuales está en la posición 2, no en la 1.
                     string csvPlaca = columnas.Length > 2 ? columnas[2].Trim() : "";
                     string csvPlacaLimpia = csvPlaca.ToUpper().Replace(" ", "");
 
@@ -1090,7 +1072,7 @@ void BuscarVehiculo()
                         else
                         {
                             //Cada que encuentre otro resultado agrega una linea entre medio.
-                            Console.WriteLine(" ├───────┼──────────┼────────────┼──────────────────┼──────────────────┼────────────────┼──────────────┼─────────────────┼──────────────────────────────────┤");
+                            Console.WriteLine(" ├───────┼──────────┼────────────┼──────────────────┼──────────────────┼────────────────┼──────────────┼─────────────────┼────────────────────────────────────────────────────┤");
                         }
 
                         // Asi quedan los indices de la columna.
@@ -1236,10 +1218,7 @@ void InformacionOperadorHistorialAccesos()
             Console.WriteLine(" └────┴───────────────────┴────────────┴──────────┴──────────┴────────────────┴──────────────────────┴──────────────────────┘");
         }
     }
-
-
 }
-
 
 // =====================================================================
 //   OPCIÓN 5: MÓDULO DE AUDITORÍA (REVISIÓN DE SESIONES ANTERIORES)
@@ -1458,9 +1437,9 @@ bool CerrarTurnoYGenerarReporte()
     guardias[indiceActual].vehiculosRegistrados = i;
 
     // Crear un variable de tipo TimeSpan para calcular el tiempo trabajado
-    //Nota: TimeSpan es una estructura de C# que representa un intervalo de tiempo, en este caso lo usamos para calcular la duración del turno del guardia.
+   
     Guardia operador = guardias[indiceActual];
-    TimeSpan tiempoTrabajado = operador.horaSalida!.Value - operador.horaInicio;
+    TimeSpan tiempoTrabajado = operador.horaSalida!.Value - operador.horaInicio; //Nota: TimeSpan es una estructura de C# que representa un intervalo de tiempo, en este caso lo usamos para calcular la duración del turno del guardia.
 
     // Aqui generamos el nombre del archivo de forma dinamica con el formato: nombre_apellido_fecha_id.csv
     string nombreLimpio = operador.nombre.Split(' ')[0].ToLower();
@@ -1471,7 +1450,7 @@ bool CerrarTurnoYGenerarReporte()
     string nombreArchivo = $"{nombreLimpio}_{apellidoLimpio}_{fechaHoy}_{idGuardia}.csv";
     try
     {
-        // Abrimos el archivo directamente para escribir en él
+        // Abrimos el archivo para esribir directamente dentro
         using (StreamWriter sw = new StreamWriter(nombreArchivo, false, System.Text.Encoding.UTF8))
         {
             sw.WriteLine("======================================================================================");
@@ -1514,7 +1493,8 @@ bool CerrarTurnoYGenerarReporte()
             sw.WriteLine($"Total de Vehículos Procesados:;{i}");
             sw.WriteLine($"Estado del Turno:;CERRADO Y AUDITADO");
             sw.WriteLine("======================================================================================");
-        } // Aquí el "using" cierra el archivo automáticamente de forma segura
+        } 
+        
         // Animacion Dinamica
         Console.Write("  Sincronizando datos locales");
         for (int p = 0; p < 6; p++)
