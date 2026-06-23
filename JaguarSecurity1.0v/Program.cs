@@ -4,8 +4,8 @@ using System.Runtime.ConstrainedExecution;
 using System.Text;
 using System.Threading;
 
-Vehiculo[] vehiculos = new Vehiculo[1000];
-Guardia[] guardias = new Guardia[100]; // Capacidad para 100 turnos
+Vehiculo[] vehiculos = new Vehiculo[10000];
+Guardia[] guardias = new Guardia[10000]; // Capacidad para 10000 turnos
 int totalLogins = 0; // Contador de cuántos guardias han iniciado sesion
 int i = 0;
 
@@ -1031,7 +1031,7 @@ void BuscarVehiculo()
             string[] lineas = File.ReadAllLines(archivo);
 
             // Empezamos desde la fila 15 para saltar los encabezados del CSV
-            for (int f = 15; f < lineas.Length; f++)
+            for (int f = 16; f < lineas.Length; f++)
             {
                 string linea = lineas[f];
                 if (string.IsNullOrWhiteSpace(linea)) continue;
