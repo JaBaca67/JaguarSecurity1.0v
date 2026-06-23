@@ -389,6 +389,7 @@ void RegistroVehiculo()
         vehiculos[i].cedula = LeerCedula();
         vehiculos[i].destino = LeerOpcional("Destino");
         vehiculos[i].detalles = LeerOpcional("Detalles del conductor o vehículo");
+        vehiculos[i].horaIngreso = DateTime.Now;
 
         i++;
 
@@ -424,12 +425,12 @@ void RegistroVehiculo()
 
 string SeleccionarTipo()
 {
-    int lineaInicio = Console.CursorTop; 
+    int lineaInicio = Console.CursorTop;
     int op;
 
     while (true)
     {
-        
+
         LimpiarAreaConsola(lineaInicio);
 
         Console.ForegroundColor = ConsoleColor.Green;
@@ -493,23 +494,19 @@ string SeleccionarTipo()
 
 string LeerPlaca()
 {
-    // Corregido a 'lineaInicio'. Guardamos el punto exacto donde empieza el campo
     int lineaInicio = Console.CursorTop;
 
     while (true)
     {
-        // Limpiamos el área en caso de que estemos repitiendo por un error previo
         LimpiarAreaConsola(lineaInicio);
 
         Console.ForegroundColor = ConsoleColor.Yellow;
         Console.Write("\n>> Placa del vehículo (Máx 15 caracteres, ej: M123456): ");
         Console.ResetColor();
 
-        // Leemos la entrada cruda (solo quitando espacios a los lados con Trim)
         string entrada = Console.ReadLine()!.Trim();
 
-        // 1. Validación de vacío o longitud máxima
-        if (string.IsNullOrEmpty(entrada) || entrada.Length > 15)
+        if (string.IsNullOrEmpty(entrada) || entrada.Length > 15)//Validar 
         {
             MostrarError("Este campo no puede quedar vacío o superar los 15 caracteres.");
             continue;
@@ -533,9 +530,6 @@ string LeerPlaca()
             continue;
         }
 
-        // ═════════════════════ EL TRUCO VISUAL ═════════════════════
-
-        // Convertimos el texto verificado a Mayúsculas de forma interna
         string placaMayuscula = entrada.ToUpper();
 
         // Borramos por completo la línea donde el usuario escribió originalmente en minúsculas
@@ -558,34 +552,29 @@ string LeerPlaca()
 
 string LeerConductor()
 {
-    // Guardamos la posición exacta del renglón donde empieza este campo
     int lineaInicio = Console.CursorTop;
 
     while (true)
     {
-        // Limpiamos el área por si venimos de un intento fallido anterior
         LimpiarAreaConsola(lineaInicio);
 
         Console.ForegroundColor = ConsoleColor.Yellow;
         Console.Write("\n>> Nombre del conductor: ");
         Console.ResetColor();
 
-        // Leemos la entrada original (cruda) quitando solo espacios a los extremos
         string entrada = Console.ReadLine()!.Trim();
 
-        // 1. Validación de campo vacío
-        if (string.IsNullOrEmpty(entrada))
+
+        if (string.IsNullOrEmpty(entrada))// Valir vacio
         {
             MostrarError("Este campo no puede quedar vacío. Ingrese el nombre del conductor.");
             continue;
         }
 
-        // 2. Validación estricta: Solo letras y espacios (se rechazan números y símbolos)
-        bool esValido = true;
+        bool esValido = true;// Validacion estricta
         foreach (char c in entrada)
         {
-            // Si NO es letra Y tampoco es un espacio, el nombre es inválido
-            if (!char.IsLetter(c) && c != ' ')
+            if (!char.IsLetter(c) && c != ' ')// Si no es letra y no tiene espacios
             {
                 esValido = false;
                 break; // Detenemos el ciclo al encontrar el primer carácter prohibido
@@ -598,66 +587,54 @@ string LeerConductor()
             continue;
         }
 
-        // ═════════════════════ EL TRUCO VISUAL ═════════════════════
-
-        // Convertimos el nombre verificado a Mayúsculas
         string nombreMayuscula = entrada.ToUpper();
 
         // Borramos la línea completa donde el usuario escribió originalmente en minúsculas
         LimpiarAreaConsola(lineaInicio);
 
-        // Volvemos a pintar la pregunta en la misma posición limpia
-        Console.ForegroundColor = ConsoleColor.Yellow;
+        Console.ForegroundColor = ConsoleColor.Yellow;// Volvemos a pintar la pregunta en la misma posición limpia
         Console.Write("\n>> Nombre del conductor: ");
         Console.ResetColor();
 
-        // Imprimimos el nombre formateado inmediatamente al lado en color Celeste
-        Console.ForegroundColor = ConsoleColor.Cyan;
+        Console.ForegroundColor = ConsoleColor.Cyan;     // Imprimimos el nombre formateado inmediatamente al lado en color Celeste
         Console.WriteLine(nombreMayuscula);
         Console.ResetColor();
 
-        // Devolvemos el nombre limpio y en mayúsculas listo para el sistema
-        return nombreMayuscula;
+        return nombreMayuscula;// Devolvemos el nombre limpio y en mayúsculas listo para el sistema
+
     }
 }
 
 string LeerCedula()
 {
-    // Guardamos la posición exacta del renglón (corregido el typo 'lineaInicio')
     int lineaInicio = Console.CursorTop;
 
     while (true)
     {
-        // 1. Limpiamos el área al inicio del ciclo por si venimos de un error
         LimpiarAreaConsola(lineaInicio);
 
         Console.ForegroundColor = ConsoleColor.Yellow;
         Console.Write("\n>> Cédula (14 caracteres o N/A para omitir): ");
         Console.ResetColor();
 
-        // Leemos la entrada original quitando espacios accidentales a los lados
         string entrada = Console.ReadLine()!.Trim();
-        string cedulaMayuscula = entrada.ToUpper();
+        string cedulaMayuscula = entrada.ToUpper();//Tranformar la entrada en mayuscula.
 
-        // 2. Validación de campo vacío
-        if (string.IsNullOrEmpty(entrada))
+        if (string.IsNullOrEmpty(entrada))//Validar vacio
         {
             MostrarError("Este campo no puede quedar vacío. Ingrese la cédula o escriba N/A.");
             continue;
         }
 
-        // 3. Si NO escribió "N/A", hacemos las validaciones estrictas de la cédula
-        if (cedulaMayuscula != "N/A")
+        if (cedulaMayuscula != "N/A")//Sino escribe N/A entonces pasar a la siguiente validacion.
         {
-            // Validación de longitud exacta (Las cédulas oficiales tienen 14 caracteres sin guiones)
-            if (entrada.Length != 14)
+            if (entrada.Length != 14)  // Validación de longitud exacta
             {
                 MostrarError("Cédula inválida. Debe contener exactamente 14 caracteres (sin guiones) o escribir N/A.");
                 continue;
             }
 
-            // Validación alfanumérica (Evita que pongan guiones, barras, espacios o símbolos)
-            bool esAlfanumerico = true;
+            bool esAlfanumerico = true; // Validación de caracteres fuera de numeros y letras
             foreach (char c in entrada)
             {
                 if (!char.IsLetterOrDigit(c))
@@ -674,53 +651,42 @@ string LeerCedula()
             }
         }
 
-     
-        // Borramos la línea donde el usuario escribió originalmente
-        LimpiarAreaConsola(lineaInicio);
+        LimpiarAreaConsola(lineaInicio);//Despues de pasar las validaciones mostrar de nuevo el texto.
 
-        // Volvemos a pintar la pregunta original en limpio
         Console.ForegroundColor = ConsoleColor.Yellow;
         Console.Write("\n>> Cédula (14 caracteres o N/A para omitir): ");
         Console.ResetColor();
 
-        // Imprimimos el resultado formateado en mayúsculas y en color Celeste
         Console.ForegroundColor = ConsoleColor.Cyan;
         Console.WriteLine(cedulaMayuscula);
         Console.ResetColor();
 
-        // Retornamos el valor procesado
         return cedulaMayuscula;
     }
 }
 
 string LeerOpcional(string nombreCampo)
 {
-    // Guardamos la posición exacta de la consola donde empieza este campo
     int lineaInicio = Console.CursorTop;
 
     while (true)
     {
-        // 1. Limpiamos el área al inicio del ciclo por si venimos de un error anterior
         LimpiarAreaConsola(lineaInicio);
 
         Console.ForegroundColor = ConsoleColor.Yellow;
         Console.Write($"\n>> {nombreCampo} (Escriba N/A para omitir): ");
         Console.ResetColor();
 
-        // Leemos la entrada cruda quitando solo espacios a los extremos
         string entrada = Console.ReadLine()!.Trim();
 
-        // 2. Validación de campo vacío
-        if (string.IsNullOrEmpty(entrada))
+        if (string.IsNullOrEmpty(entrada))  //Validacion de campo vacío
         {
             MostrarError("Este campo no puede quedar vacío. Escriba la información o digite N/A para omitir.");
             continue;
         }
 
-        // Caso Especial: Si el operador decide omitir escribiendo "N/A" (en mayúsculas o minúsculas)
-        if (entrada.ToUpper() == "N/A")
+        if (entrada.ToUpper() == "N/A")   //Validacion de n/a
         {
-            // Aplicamos el truco visual directamente para el "N/A"
             LimpiarAreaConsola(lineaInicio);
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.Write($"\n  ► {nombreCampo} (Escriba N/A para omitir): ");
@@ -729,18 +695,16 @@ string LeerOpcional(string nombreCampo)
             Console.WriteLine("N/A");
             Console.ResetColor();
 
-            return "N/A"; // Retornamos el estándar en mayúsculas
+            return "N/A";
         }
 
-        // 3. Validación de caracteres raros (Filtro para descripciones)
         bool esValido = true;
-        foreach (char c in entrada)
+        foreach (char c in entrada)//Validar si es el texto no es letras o numeros.
         {
-            // Permitimos: Letras, Números, Espacios, Puntos y Comas. Todo lo demás es "raro".
             if (!char.IsLetterOrDigit(c) && c != ' ' && c != '.' && c != ',')
             {
                 esValido = false;
-                break; // Rompemos el ciclo al detectar el primer símbolo prohibido
+                break;
             }
         }
 
@@ -749,9 +713,6 @@ string LeerOpcional(string nombreCampo)
             MostrarError("Texto inválido. No se permiten símbolos especiales (@, #, $, -, _, etc.). Solo use letras, números, espacios, puntos o comas.");
             continue;
         }
-
-        // ═════════════════════ EL TRUCO VISUAL ═════════════════════
-        // (Aquí NO usamos .ToUpper(), conservamos el texto original del usuario)
 
         // Borramos la línea original de escritura
         LimpiarAreaConsola(lineaInicio);
@@ -766,7 +727,6 @@ string LeerOpcional(string nombreCampo)
         Console.WriteLine(entrada);
         Console.ResetColor();
 
-        // Retornamos el valor respetando sus mayúsculas y minúsculas originales
         return entrada;
     }
 }
@@ -782,9 +742,7 @@ void MostrarError(string mensaje)
 
 }
 
-
 //OPCION MENU 2: MOSTRAR REGISTROS DE LA SESIÓN ACTUAL (CON OPCIONES DE ELIMINAR Y EDITAR)
-
 void MostrarRegistros()
 {
     while (true)
@@ -1009,6 +967,7 @@ void EditarVehiculo()
     vehiculos[pos].destino = LeerOpcional("Nuevo Destino");
     vehiculos[pos].detalles = LeerOpcional("Nuevos Detalles");
 
+
     Console.ForegroundColor = ConsoleColor.Green;
     Console.WriteLine("¡Vehículo modificado correctamente!");
     Console.ResetColor();
@@ -1095,7 +1054,6 @@ void BuscarVehiculo()
             Console.WriteLine(string.Format(formatoBusqueda, num, horaFormateada, placaFormateada, tipoFormateado, conductorFormateado, cedulaFormateada, destinoFormateado, detallesFormateados, "Sesión en Curso (RAM)"));
         }
     }
-
     //Buscar en los archivos .CSV de sesiones anteriores (historial global)
     try
     {
