@@ -606,7 +606,7 @@ void MostrarRegistros()
         }
         else if (accion == "E")
         {
-            //SubProcesoEliminar();
+            SubProcesoEliminar();
         }
         else if (accion == "M")
         {
@@ -624,46 +624,242 @@ void MostrarRegistros()
     }
 }
 
+// ====================================================================
+// SUB-PROCESO: ELIMINAR REGISTRO DE LA SESIÓN ACTUAL
+// ====================================================================
+void SubProcesoEliminar()
+{
+    // Capturamos la línea exacta donde el usuario va a empezar a escribir abajo del menú
+    int filaInicioAccion = Console.CursorTop;
 
-//OPCION 3 MENU: BUSCAR ANTECEDENTES DE PLACA (HISTORIAL GLOBAL EN .CSV)
-//FALTA POR ACTUALIZAR LA FUNCION DE BUSQUEDA EN LOS ARCHIVOS .CSV DE SESIONES ANTERIORES (HISTORIAL GLOBAL)
+    while (true)
+    {
+        // ¡Usamos tu propia función! Limpiará cualquier intento fallido anterior
+        LimpiarAreaConsola(filaInicioAccion);
+
+        Console.ForegroundColor = ConsoleColor.Yellow;
+        Console.Write("  >> Digite el Nº de registro que desea ELIMINAR (o presione ENTER para cancelar): ");
+        Console.ResetColor();
+
+        string entrada = Console.ReadLine()!.Trim();
+
+        // Cancelación implícita: Si presiona ENTER, sale sin borrar nada
+        if (string.IsNullOrEmpty(entrada))
+        {
+            break;
+        }
+
+        // Validación: Verificar que sea número y esté en el rango (1 a i)
+        if (int.TryParse(entrada, out int registro) && registro > 0 && registro <= i)
+        {
+            int indiceBorrar = registro - 1; // Ajuste para el índice del arreglo
+
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.Write($"\n  [!]  ¿Está seguro que desea eliminar permanentemente el Vehículo Nº {registro} (Placa: {vehiculos[indiceBorrar].placa})? (S/N): ");
+            Console.ResetColor();
+
+            string confirmar = Console.ReadLine()!.Trim().ToUpper();
+
+            if (confirmar == "S")
+            {
+                // Desplazamos todos los elementos una posición hacia atrás
+                for (int j = indiceBorrar; j < i - 1; j++)
+                {
+                    vehiculos[j] = vehiculos[j + 1];
+                }
+
+                // Limpiamos el último slot duplicado
+                vehiculos[i - 1] = default;
+
+                // Restamos 1 al contador global de vehículos
+                i--;
+
+                Console.WriteLine();
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine("  [ OK ] El registro ha sido eliminado de la memoria y la bitácora fue reajustada.");
+                Console.ResetColor();
+                Thread.Sleep(1300);
+                break; // Sale y la tabla se volverá a dibujar sin este registro
+            }
+            else
+            {
+                break; // Canceló en la confirmación
+            }
+        }
+
+        // Si llega aquí, es porque ingresó un número fuera de rango o un texto inválido
+        Console.ForegroundColor = ConsoleColor.Red;
+        Console.WriteLine("\n  [!] Error: El Nº ingresado no existe en la tabla actual o es inválido.");
+        Console.ResetColor();
+        Console.WriteLine("  Presione ENTER para reintentar...");
+        Console.ReadKey();
+
+        // Pausa para que lea el error. Al reiniciar el bucle, tu LimpiarAreaConsola borrará este mensaje.
+
+    }
+}
+
+// =====================================================================
+// OPCIÓN 3 MENU: BUSCAR ANTECEDENTES DE PLACA (HISTORIAL GLOBAL EN .CSV)
+// =====================================================================
 void BuscarVehiculo()
 {
     Console.Clear();
-    Console.WriteLine("===== BÚSQUEDA RÁPIDA DE VEHÍCULO =====");
+    Console.Write("\x1b[3J"); // Limpia el rastro del scroll
 
-    Console.Write("Ingrese la placa del vehículo: ");
-    string placaBuscada = Console.ReadLine()!.ToUpper();
+    Console.ForegroundColor = ConsoleColor.Cyan;
+    Console.WriteLine("╔══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗");
+    Console.WriteLine("║                                              BUSCAR ANTECEDENTES HISTÓRICOS DE PLACA                                                     ║");
+    Console.WriteLine("╚══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝\n");
+    Console.ResetColor();
 
-    bool encontrado = false;
+    Console.Write(" >> Ingrese la PLACA a consultar (Mínimo 3 caracteres): ");
+    string placaBuscar = Console.ReadLine()!.Trim().ToUpper().Replace(" ", "");
 
-    for (int j = 0; j < i; j++)
+    // Validación de seguridad para evitar búsquedas de 1 o 2 caracteres(Aca se puede aumentar o disminuir el numero de caracteres para el limite)
+    if (string.IsNullOrEmpty(placaBuscar) || placaBuscar.Length < 3)//Si cambiamos este 3 cambia el limite de caracteres.
     {
-        // Validamos que el vehículo no sea nulo y comparamos la placa
-        if (vehiculos[j].placa != null && vehiculos[j].placa.ToUpper() == placaBuscada)
-        {
-            Console.WriteLine("\nVEHÍCULO ENCONTRADO");
-            Console.WriteLine("================================");
-            Console.WriteLine($"Tipo: {vehiculos[j].tipo}");
-            Console.WriteLine($"Placa: {vehiculos[j].placa}");
-            Console.WriteLine($"Conductor: {vehiculos[j].conductor}");
-            Console.WriteLine($"Cédula: {vehiculos[j].cedula}");
-            Console.WriteLine($"Destino: {vehiculos[j].destino}");
-            Console.WriteLine($"Detalles: {vehiculos[j].detalles}");
-            Console.WriteLine("================================");
+        Console.ForegroundColor = ConsoleColor.Red;
+        Console.WriteLine("\n [!] Error: Debe ingresar al menos 3 caracteres de la placa para realizar una búsqueda global.");
+        Console.ResetColor();
+        return;
+    }
 
-            encontrado = true;
-            break;
+    Console.ForegroundColor = ConsoleColor.DarkGray;
+    Console.WriteLine("\n [i] Escaneando registros en memoria y archivos locales .CSV, espere...");
+    Console.ResetColor();
+    Thread.Sleep(600);
+
+    // Formato de tabla adaptado para 9 columnas. El índice {8} (Origen) tiene un margen amplio de 32 para no cortar el texto.
+    string formatoBusqueda = " │ {0,-5} │ {1,-8} │ {2,-10} │ {3,-16} │ {4,-16} │ {5,-14} │ {6,-12} │ {7,-15} │ {8,-32} │";
+    bool seEncontraronResultados = false;
+
+    void DibujarEncabezadoTabla()
+    {
+        Console.ForegroundColor = ConsoleColor.Yellow;
+        Console.WriteLine(" ┌───────┬──────────┬────────────┬──────────────────┬──────────────────┬────────────────┬──────────────┬─────────────────┬──────────────────────────────────┐");
+        Console.WriteLine(string.Format(formatoBusqueda, "Nº", "Hora", "Placa", "Tipo Vehículo", "Conductor", "Cédula", "Destino", "Detalles", "Origen del Dato"));
+        Console.WriteLine(" ├───────┼──────────┼────────────┼──────────────────┼──────────────────┼────────────────┼──────────────┼─────────────────┼──────────────────────────────────┤");
+        Console.ResetColor();
+    }
+
+    void DibujarPieTabla()
+    {
+        Console.ForegroundColor = ConsoleColor.Yellow;
+        Console.WriteLine(" └───────┴──────────┴────────────┴──────────────────┴──────────────────┴────────────────┴──────────────┴─────────────────┴──────────────────────────────────┘");
+        Console.ResetColor();
+    }
+
+    //Busqueda en la memoria RAM de la sesión actual
+    for (int v = 0; v < i; v++)
+    {
+        string placaActual = vehiculos[v].placa.ToUpper().Replace(" ", "");
+        if (placaActual.Contains(placaBuscar))
+        {
+            if (!seEncontraronResultados)
+            {
+                DibujarEncabezadoTabla();
+                seEncontraronResultados = true;
+            }
+            else
+            {
+                //Cada que encuentre otro resultado agrega una linea entre medio.
+                Console.WriteLine(" ├───────┼──────────┼────────────┼──────────────────┼──────────────────┼────────────────┼──────────────┼─────────────────┼──────────────────────────────────┤");
+            }
+            string num = (v + 1).ToString();
+            string horaFormateada = vehiculos[v].horaIngreso.ToString("HH:mm:ss");
+            string placaFormateada = vehiculos[v].placa.Length > 10 ? vehiculos[v].placa.Substring(0, 10) : vehiculos[v].placa;
+            string tipoFormateado = vehiculos[v].tipo.Length > 16 ? vehiculos[v].tipo.Substring(0, 16) : vehiculos[v].tipo;
+            string conductorFormateado = vehiculos[v].conductor.Length > 16 ? vehiculos[v].conductor.Substring(0, 13) + "..." : vehiculos[v].conductor;
+            string cedulaFormateada = vehiculos[v].cedula.Length > 14 ? vehiculos[v].cedula.Substring(0, 14) : vehiculos[v].cedula;
+            string destinoFormateado = vehiculos[v].destino.Length > 12 ? vehiculos[v].destino.Substring(0, 9) + "..." : vehiculos[v].destino;
+            string detallesFormateados = vehiculos[v].detalles.Length > 15 ? vehiculos[v].detalles.Substring(0, 12) + "..." : vehiculos[v].detalles;
+
+            // El archivo de origen se muestra completo en memoria RAM
+            Console.WriteLine(string.Format(formatoBusqueda, num, horaFormateada, placaFormateada, tipoFormateado, conductorFormateado, cedulaFormateada, destinoFormateado, detallesFormateados, "Sesión en Curso (RAM)"));
         }
     }
 
-    if (!encontrado)
+    //Buscar en los archivos .CSV de sesiones anteriores (historial global)
+    try
+    {
+        string rutaDirectorio = AppDomain.CurrentDomain.BaseDirectory;
+        string[] archivosCsv = Directory.GetFiles(rutaDirectorio, "*.csv");
+
+        foreach (string archivo in archivosCsv)
+        {
+            string nombreArchivoCorto = Path.GetFileName(archivo);
+            string[] lineas = File.ReadAllLines(archivo);
+
+            // Empezamos desde la fila 15 para saltar los encabezados del CSV
+            for (int f = 15; f < lineas.Length; f++)
+            {
+                string linea = lineas[f];
+                if (string.IsNullOrWhiteSpace(linea)) continue;
+
+                string[] columnas = linea.Split(';');
+
+                // Aseguramos que haya datos suficientes en la línea
+                if (columnas.Length >= 5)
+                {
+                    // ¡CORRECCIÓN AQUÍ! La placa en tus CSV actuales está en la posición 2, no en la 1.
+                    string csvPlaca = columnas.Length > 2 ? columnas[2].Trim() : "";
+                    string csvPlacaLimpia = csvPlaca.ToUpper().Replace(" ", "");
+
+                    if (csvPlacaLimpia.Contains(placaBuscar))
+                    {
+                        if (!seEncontraronResultados)
+                        {
+                            DibujarEncabezadoTabla();
+                            seEncontraronResultados = true;
+                        }
+                        else
+                        {
+                            //Cada que encuentre otro resultado agrega una linea entre medio.
+                            Console.WriteLine(" ├───────┼──────────┼────────────┼──────────────────┼──────────────────┼────────────────┼──────────────┼─────────────────┼──────────────────────────────────┤");
+                        }
+
+                        // Asi quedan los indices de la columna.
+                        // [0]=Posicion, [1]=Hora, [2]=Placa, [3]=Tipo, [4]=Conductor, [5]=Cedula, [6]=Destino, [7]=Detalles
+                        string num = columnas[0];
+                        string hora = columnas.Length > 1 ? columnas[1].Trim() : "N/A";
+                        string placa = csvPlaca.Length > 10 ? csvPlaca.Substring(0, 10) : csvPlaca;
+                        string tipo = columnas.Length > 3 ? (columnas[3].Length > 16 ? columnas[3].Substring(0, 16) : columnas[3]) : "N/A";
+                        string cond = columnas.Length > 4 ? (columnas[4].Length > 16 ? columnas[4].Substring(0, 13) + "..." : columnas[4]) : "N/A";
+                        string ced = columnas.Length > 5 ? (columnas[5].Length > 14 ? columnas[5].Substring(0, 14) : columnas[5]) : "N/A";
+                        string dest = columnas.Length > 6 ? (columnas[6].Length > 12 ? columnas[6].Substring(0, 9) + "..." : columnas[6]) : "N/A";
+                        string det = columnas.Length > 7 ? (columnas[7].Length > 15 ? columnas[7].Substring(0, 12) + "..." : columnas[7]) : "N/A";
+
+                        string fuente = nombreArchivoCorto;
+
+                        Console.WriteLine(string.Format(formatoBusqueda, num, hora, placa, tipo, cond, ced, dest, det, fuente));
+                    }
+                }
+            }
+        }
+    }
+    catch (Exception ex)
     {
         Console.ForegroundColor = ConsoleColor.Red;
-        Console.WriteLine("\nNo se encontró ningún vehículo con esa placa en la sesión actual.");
+        Console.WriteLine($"\n [!] Nota: Hubo un inconveniente al leer el almacenamiento físico (.CSV): {ex.Message}");
+        Console.ResetColor();
+    }
+
+    if (seEncontraronResultados)
+    {
+        DibujarPieTabla();
+        Console.ForegroundColor = ConsoleColor.Green;
+        Console.WriteLine("\n [ OK ] Búsqueda global finalizada con éxito.");
+        Console.ResetColor();
+    }
+    else
+    {
+        Console.ForegroundColor = ConsoleColor.Red;
+        Console.WriteLine($"\n [!] No se encontraron antecedentes ni registros para la placa que contenga '{placaBuscar}'.");
         Console.ResetColor();
     }
 }
+
 // =====================================================================
 //   OPCIÓN 4: INFORMACIÓN DEL OPERADOR E HISTORIAL DE ACCESOS
 // =====================================================================
@@ -678,7 +874,7 @@ void InformacionOperadorHistorialAccesos()
     Console.WriteLine(" ╚═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝\n");
     Console.ResetColor();
 
-  
+
     int indiceActual = totalLogins - 1;
     Guardia operadorActual = guardias[indiceActual];
 
@@ -767,7 +963,7 @@ void InformacionOperadorHistorialAccesos()
         }
     }
 
-    
+
 }
 
 
@@ -1028,7 +1224,7 @@ bool CerrarTurnoYGenerarReporte()
         for (int r = 0; r < i; r++)
         {
             //Remplazar los ; por que se veian horribles
-            string horaStr = vehiculos[r].horaIngreso.ToString("HH:mm:ss");       
+            string horaStr = vehiculos[r].horaIngreso.ToString("HH:mm:ss");
             string placa = vehiculos[r].placa.Replace(";", "-");
             string tipo = vehiculos[r].tipo.Replace(";", "-");
             string conductor = vehiculos[r].conductor.Replace(";", "-");
