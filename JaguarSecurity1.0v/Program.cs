@@ -1195,57 +1195,52 @@ bool CerrarTurnoYGenerarReporte()
     string fechaHoy = DateTime.Now.ToString("dd-MM-yyyy");
 
     string nombreArchivo = $"{nombreLimpio}_{apellidoLimpio}_{fechaHoy}_{idGuardia}.csv";
-
     try
     {
-        List<string> lineasCsv = new List<string>();
-
-        lineasCsv.Add("======================================================================================");
-        lineasCsv.Add("                       REPORTE OFICIAL DE CONTROL DE ACCESO UAM                       ");
-        lineasCsv.Add("                                 SISTEMA JAGUAR SECURITY                              ");
-        lineasCsv.Add("======================================================================================");
-        lineasCsv.Add("");
-
-        //Datos del guarda
-        lineasCsv.Add("--- I. DATOS DEL OPERADOR ---");
-        lineasCsv.Add($"Nombre Completo:;{operador.nombre} {operador.apellido}");
-        lineasCsv.Add($"Credencial (ID):;{operador.id}");
-        lineasCsv.Add($"Usuario de Red:;{operador.nombreUsuario}");
-        lineasCsv.Add($"Fecha y Hora de Entrada:;{operador.horaInicio.ToString("dd/MM/yyyy HH:mm:ss")}");
-        lineasCsv.Add($"Fecha y Hora de Salida:;{operador.horaSalida.Value.ToString("dd/MM/yyyy HH:mm:ss")}");
-        lineasCsv.Add($"Duración Total del Turno:;{tiempoTrabajado.Hours} Horas con {tiempoTrabajado.Minutes} Minutos");
-        lineasCsv.Add("");
-
-        // Bitacora de vehciulos registrados
-        lineasCsv.Add("--- II. BITÁCORA DE VEHÍCULOS INGRESADOS ---");
-        // Nueva columna
-        lineasCsv.Add("Nº;Hora;Placa;Tipo de Vehículo;Conductor;Cédula;Destino;Detalles Adicionales");
-
-        for (int r = 0; r < i; r++)
+        // Abrimos el archivo directamente para escribir en él
+        using (StreamWriter sw = new StreamWriter(nombreArchivo, false, System.Text.Encoding.UTF8))
         {
-            //Remplazar los ; por que se veian horribles
-            string horaStr = vehiculos[r].horaIngreso.ToString("HH:mm:ss");
-            string placa = vehiculos[r].placa.Replace(";", "-");
-            string tipo = vehiculos[r].tipo.Replace(";", "-");
-            string conductor = vehiculos[r].conductor.Replace(";", "-");
-            string cedula = vehiculos[r].cedula.Replace(";", "-");
-            string destino = vehiculos[r].destino.Replace(";", "-");
-            string detalles = vehiculos[r].detalles.Replace(";", "-");
+            sw.WriteLine("======================================================================================");
+            sw.WriteLine("                       REPORTE OFICIAL DE CONTROL DE ACCESO UAM                       ");
+            sw.WriteLine("                                 SISTEMA JAGUAR SECURITY                              ");
+            sw.WriteLine("======================================================================================");
+            sw.WriteLine("");
 
-            // Se agrego la variable hora al csv
-            lineasCsv.Add($"{r + 1};{horaStr};{placa};{tipo};{conductor};{cedula};{destino};{detalles}");
-        }
-        lineasCsv.Add("");
+            // Datos del guarda
+            sw.WriteLine("--- I. DATOS DEL OPERADOR ---");
+            sw.WriteLine($"Nombre Completo:;{operador.nombre} {operador.apellido}");
+            sw.WriteLine($"Credencial (ID):;{operador.id}");
+            sw.WriteLine($"Usuario de Red:;{operador.nombreUsuario}");
+            sw.WriteLine($"Fecha y Hora de Entrada:;{operador.horaInicio.ToString("dd/MM/yyyy HH:mm:ss")}");
+            sw.WriteLine($"Fecha y Hora de Salida:;{operador.horaSalida.Value.ToString("dd/MM/yyyy HH:mm:ss")}");
+            sw.WriteLine($"Duración Total del Turno:;{tiempoTrabajado.Hours} Horas con {tiempoTrabajado.Minutes} Minutos");
+            sw.WriteLine("");
 
-        // Cierre
-        lineasCsv.Add("--- III. RESUMEN DE OPERACIONES ---");
-        lineasCsv.Add($"Total de Vehículos Procesados:;{i}");
-        lineasCsv.Add($"Estado del Turno:;CERRADO Y AUDITADO");
-        lineasCsv.Add("======================================================================================");
+            // Bitácora de vehículos registrados
+            sw.WriteLine("--- II. BITÁCORA DE VEHÍCULOS INGRESADOS ---");
+            sw.WriteLine("Nº;Hora;Placa;Tipo de Vehículo;Conductor;Cédula;Destino;Detalles Adicionales");
 
-        File.WriteAllLines(nombreArchivo, lineasCsv, System.Text.Encoding.UTF8);
+            for (int r = 0; r < i; r++)
+            {
+                string horaStr = vehiculos[r].horaIngreso.ToString("HH:mm:ss");
+                string placa = vehiculos[r].placa.Replace(";", "-");
+                string tipo = vehiculos[r].tipo.Replace(";", "-");
+                string conductor = vehiculos[r].conductor.Replace(";", "-");
+                string cedula = vehiculos[r].cedula.Replace(";", "-");
+                string destino = vehiculos[r].destino.Replace(";", "-");
+                string detalles = vehiculos[r].detalles.Replace(";", "-");
 
-        Console.WriteLine("\n──────────────────────────────────────────────────────────────────────");
+                // Escribe la línea del vehículo directamente en el disco duro
+                sw.WriteLine($"{r + 1};{horaStr};{placa};{tipo};{conductor};{cedula};{destino};{detalles}");
+            }
+            sw.WriteLine("");
+
+            // Cierre
+            sw.WriteLine("--- III. RESUMEN DE OPERACIONES ---");
+            sw.WriteLine($"Total de Vehículos Procesados:;{i}");
+            sw.WriteLine($"Estado del Turno:;CERRADO Y AUDITADO");
+            sw.WriteLine("======================================================================================");
+        } // Aquí el "using" cierra el archivo automáticamente de forma segura
         // Animacion Dinamica
         Console.Write("  Sincronizando datos locales");
         for (int p = 0; p < 6; p++)
