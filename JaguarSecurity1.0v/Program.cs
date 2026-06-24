@@ -381,8 +381,8 @@ void RegistroVehiculo()
         vehiculos[i].placa = LeerPlaca();
         vehiculos[i].conductor = LeerConductor();
         vehiculos[i].cedula = LeerCedula();
-        vehiculos[i].destino = LeerOpcional(">> Destino");
-        vehiculos[i].detalles = LeerOpcional(">> Detalles del conductor o vehículo");
+        vehiculos[i].destino = LeerOpcional("Destino");
+        vehiculos[i].detalles = LeerOpcional("Detalles del conductor o vehículo");
         vehiculos[i].horaIngreso = DateTime.Now;
 
         i++;
@@ -620,7 +620,7 @@ string LeerCedula()
                 continue;
             }
 
-            bool esAlfanumerico = true; // Validacipn de caracteres fuera de numeros y letras
+            bool esAlfanumerico = true; // Validacion de caracteres fuera de numeros y letras
             foreach (char c in entrada)
             {
                 if (!char.IsLetterOrDigit(c))
@@ -635,19 +635,42 @@ string LeerCedula()
                 MostrarError("La cédula no debe contener guiones, espacios ni símbolos. Solo letras y números.");
                 continue;
             }
+                 
+        }
+        if(cedulaMayuscula == "N/A")
+        {
+            LimpiarAreaConsola(lineaInicio);//Despues de pasar las validaciones mostrar de nuevo el texto.
+            
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.Write("\n>> Cédula (14 caracteres o N/A para omitir): ");
+            Console.ResetColor();
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.WriteLine(cedulaMayuscula);
+            Console.ResetColor();
+
+            return cedulaMayuscula;
         }
 
-        LimpiarAreaConsola(lineaInicio);//Despues de pasar las validaciones mostrar de nuevo el texto.
+        if(cedulaMayuscula.Length == 14)
+        {
+            LimpiarAreaConsola(lineaInicio);//Despues de pasar las validaciones mostrar de nuevo el texto.
+            string municio = cedulaMayuscula.Substring(0, 3);
+            string fecha = cedulaMayuscula.Substring(3, 6);
+            string consecutivo = cedulaMayuscula.Substring(9, 5);
 
-        Console.ForegroundColor = ConsoleColor.Yellow;
-        Console.Write("\n>> Cédula (14 caracteres o N/A para omitir): ");
-        Console.ResetColor();
+            string cedulaFormateada = $"{municio}-{fecha}-{consecutivo}";
 
-        Console.ForegroundColor = ConsoleColor.Cyan;
-        Console.WriteLine(cedulaMayuscula);
-        Console.ResetColor();
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.Write("\n>> Cédula (14 caracteres o N/A para omitir): ");
+            Console.ResetColor();
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.WriteLine(cedulaFormateada);
+            Console.ResetColor();
 
-        return cedulaMayuscula;
+            return cedulaFormateada;
+        }
+        
+
     }
 }
 
@@ -675,7 +698,7 @@ string LeerOpcional(string nombreCampo)
         {
             LimpiarAreaConsola(lineaInicio);
             Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.Write($"\n  ► {nombreCampo} (Escriba N/A para omitir): ");
+            Console.Write($"\n>> {nombreCampo} (Escriba N/A para omitir): ");
             Console.ResetColor();
             Console.ForegroundColor = ConsoleColor.Cyan;
             Console.WriteLine("N/A");
@@ -748,13 +771,13 @@ void MostrarRegistros()
         }
 
         // Orden y formato de la tabla optimizados para mejor legibilidad
-        string formatoTabla = " │ {0,-3} │ {1,-8} │ {2,-16} │ {3,-10} │ {4,-22} │ {5,-14} │ {6,-15} │";
+        string formatoTabla = " │ {0,-3} │ {1,-8} │ {2,-16} │ {3,-10} │ {4,-22} │ {5,-16} │ {6,-15} │";
 
         // Dibujado de bordes alineado con el nuevo orden
         Console.ForegroundColor = ConsoleColor.Yellow;
-        Console.WriteLine(" ┌─────┬──────────┬──────────────────┬────────────┬────────────────────────┬────────────────┬─────────────────┐");
+        Console.WriteLine(" ┌─────┬──────────┬──────────────────┬────────────┬────────────────────────┬──────────────────┬─────────────────┐");
         Console.WriteLine(string.Format(formatoTabla, "Nº", "Hora", "Tipo Vehículo", "Placa", "Nombre Conductor", "Cédula", "Destino"));
-        Console.WriteLine(" ├─────┼──────────┼──────────────────┼────────────┼────────────────────────┼────────────────┼─────────────────┤");
+        Console.WriteLine(" ├─────┼──────────┼──────────────────┼────────────┼────────────────────────┼──────────────────┼─────────────────┤");
         Console.ResetColor();
 
         for (int v = 0; v < i; v++)
@@ -772,7 +795,7 @@ void MostrarRegistros()
         }
 
         Console.ForegroundColor = ConsoleColor.Yellow;
-        Console.WriteLine(" └─────┴──────────┴──────────────────┴────────────┴────────────────────────┴────────────────┴─────────────────┘");
+        Console.WriteLine(" └─────┴──────────┴──────────────────┴────────────┴────────────────────────┴──────────────────┴─────────────────┘");
         Console.ResetColor();
 
         Console.WriteLine("\n  [ENTER] Volver al Menú   │   [E] Eliminar Registro   │   [M] Modificar Registro");//Barra de opciones
@@ -811,7 +834,7 @@ void MostrarRegistros()
                 if (int.TryParse(entrada, out numModificar) && numModificar > 0 && numModificar <= i)
                 {
                     EditarVehiculo(numModificar - 1, numModificar);
-                    break; 
+                    break;
                 }
 
                 MostrarError($"Número inválido. Por favor seleccione un rango real entre 1 y {i}.");
@@ -971,22 +994,23 @@ void BuscarVehiculo()
     Thread.Sleep(600);
 
     // Formato de tabla adaptado para 9 columnas. El índice {8} (Origen) tiene un margen amplio de 50 para no cortar el texto.
-    string formatoBusqueda = " │ {0,-5} │ {1,-8} │ {2,-10} │ {3,-16} │ {4,-16} │ {5,-14} │ {6,-12} │ {7,-15} │ {8,-50} │";
+    string formatoBusqueda = " │ {0,-5} │ {1,-8} │ {2,-10} │ {3,-16} │ {4,-16} │ {5,-16} │ {6,-12} │ {7,-15} │ {8,-50} │";
     bool seEncontraronResultados = false;
 
     void DibujarEncabezadoTabla()
     {
         Console.ForegroundColor = ConsoleColor.Yellow;
-        Console.WriteLine(" ┌───────┬──────────┬────────────┬──────────────────┬──────────────────┬────────────────┬──────────────┬─────────────────┬────────────────────────────────────────────────────┐");
+        // Se agregaron 2 guiones a la columna de la cédula (quedan 18 guiones en esa sección)
+        Console.WriteLine(" ┌───────┬──────────┬────────────┬──────────────────┬──────────────────┬──────────────────┬──────────────┬─────────────────┬────────────────────────────────────────────────────┐");
         Console.WriteLine(string.Format(formatoBusqueda, "Nº", "Hora", "Placa", "Tipo Vehículo", "Conductor", "Cédula", "Destino", "Detalles", "Origen del Dato (Archivo)"));
-        Console.WriteLine(" ├───────┼──────────┼────────────┼──────────────────┼──────────────────┼────────────────┼──────────────┼─────────────────┼────────────────────────────────────────────────────┤");
+        Console.WriteLine(" ├───────┼──────────┼────────────┼──────────────────┼──────────────────┼──────────────────┼──────────────┼─────────────────┼────────────────────────────────────────────────────┤");
         Console.ResetColor();
     }
 
     void DibujarPieTabla()
     {
         Console.ForegroundColor = ConsoleColor.Yellow;
-        Console.WriteLine(" └───────┴──────────┴────────────┴──────────────────┴──────────────────┴────────────────┴──────────────┴─────────────────┴────────────────────────────────────────────────────┘");
+        Console.WriteLine(" └───────┴──────────┴────────────┴──────────────────┴──────────────────┴──────────────────┴──────────────┴─────────────────┴────────────────────────────────────────────────────┘");
         Console.ResetColor();
     }
 
@@ -1004,19 +1028,19 @@ void BuscarVehiculo()
             else
             {
                 //Cada que encuentre otro resultado agrega una linea en medio.
-                Console.WriteLine(" ├───────┼──────────┼────────────┼──────────────────┼──────────────────┼────────────────┼──────────────┼─────────────────┼────────────────────────────────────────────────────┤");
+                Console.WriteLine(" ├───────┼──────────┼────────────┼──────────────────┼──────────────────┼──────────────────┼──────────────┼─────────────────┼────────────────────────────────────────────────────┤");
             }
             string num = (v + 1).ToString();
             string horaFormateada = vehiculos[v].horaIngreso.ToString("HH:mm:ss");
             string placaFormateada = vehiculos[v].placa.Length > 10 ? vehiculos[v].placa.Substring(0, 10) : vehiculos[v].placa;
             string tipoFormateado = vehiculos[v].tipo.Length > 16 ? vehiculos[v].tipo.Substring(0, 16) : vehiculos[v].tipo;
             string conductorFormateado = vehiculos[v].conductor.Length > 16 ? vehiculos[v].conductor.Substring(0, 13) + "..." : vehiculos[v].conductor;
-            string cedulaFormateada = vehiculos[v].cedula.Length > 14 ? vehiculos[v].cedula.Substring(0, 14) : vehiculos[v].cedula;
+            string cedula = vehiculos[v].cedula;
             string destinoFormateado = vehiculos[v].destino.Length > 12 ? vehiculos[v].destino.Substring(0, 9) + "..." : vehiculos[v].destino;
             string detallesFormateados = vehiculos[v].detalles.Length > 15 ? vehiculos[v].detalles.Substring(0, 12) + "..." : vehiculos[v].detalles;
 
             // El archivo de origen se muestra completo en memoria RAM
-            Console.WriteLine(string.Format(formatoBusqueda, num, horaFormateada, placaFormateada, tipoFormateado, conductorFormateado, cedulaFormateada, destinoFormateado, detallesFormateados, "Sesión en Curso (RAM)"));
+            Console.WriteLine(string.Format(formatoBusqueda, num, horaFormateada, placaFormateada, tipoFormateado, conductorFormateado, cedula, destinoFormateado, detallesFormateados, "Sesión en Curso (RAM)"));
         }
     }
     //Buscar en los archivos .CSV de sesiones anteriores (historial global)
@@ -1054,7 +1078,7 @@ void BuscarVehiculo()
                         else
                         {
                             //Cada que encuentre otro resultado agrega una linea entre medio.
-                            Console.WriteLine(" ├───────┼──────────┼────────────┼──────────────────┼──────────────────┼────────────────┼──────────────┼─────────────────┼────────────────────────────────────────────────────┤");
+                            Console.WriteLine(" ├───────┼──────────┼────────────┼──────────────────┼──────────────────┼──────────────────┼──────────────┼─────────────────┼────────────────────────────────────────────────────┤");
                         }
 
                         // Asi quedan los indices de la columna.
@@ -1064,7 +1088,7 @@ void BuscarVehiculo()
                         string placa = csvPlaca.Length > 10 ? csvPlaca.Substring(0, 10) : csvPlaca;
                         string tipo = columnas.Length > 3 ? (columnas[3].Length > 16 ? columnas[3].Substring(0, 16) : columnas[3]) : "N/A";
                         string cond = columnas.Length > 4 ? (columnas[4].Length > 16 ? columnas[4].Substring(0, 13) + "..." : columnas[4]) : "N/A";
-                        string ced = columnas.Length > 5 ? (columnas[5].Length > 14 ? columnas[5].Substring(0, 14) : columnas[5]) : "N/A";
+                        string ced = columnas.Length > 5 ? (columnas[5].Length > 16 ? columnas[5].Substring(0, 16) : columnas[5]) : "N/A";
                         string dest = columnas.Length > 6 ? (columnas[6].Length > 12 ? columnas[6].Substring(0, 9) + "..." : columnas[6]) : "N/A";
                         string det = columnas.Length > 7 ? (columnas[7].Length > 15 ? columnas[7].Substring(0, 12) + "..." : columnas[7]) : "N/A";
 
@@ -1279,7 +1303,7 @@ void ModuloAuditoria()
                 // Definimos la plantilla de anchos fijos para la tabla de vehiculos nueva
                 // Ejemplo de como quedaria la tabla: Nº(4) | Hora(10) | Placa(10) | Tipo(18) | Conductor(20) | Cédula(14) | Destino(15) | Detalles(15)
                 // Los números negativos significan alineación a la izquierda
-                string formatoTabla = " │ {0,-3} │ {1,-8} │ {2,-9} │ {3,-17} │ {4,-19} │ {5,-13} │ {6,-14} │ {7,-14} │";
+                string formatoTabla = " │ {0,-3} │ {1,-8} │ {2,-9} │ {3,-17} │ {4,-19} │ {5,-16} │ {6,-14} │ {7,-14} │";
 
                 foreach (string fila in filasHistorial)
                 {
@@ -1303,9 +1327,9 @@ void ModuloAuditoria()
                     else if (celdas[0].Trim() == "Nº" || celdas[0].Trim() == "N")
                     {
                         Console.ForegroundColor = ConsoleColor.Yellow;
-                        Console.WriteLine(" ┌─────┬──────────┬───────────┬───────────────────┬─────────────────────┬───────────────┬────────────────┬────────────────┐");
+                        Console.WriteLine(" ┌─────┬──────────┬───────────┬───────────────────┬─────────────────────┬──────────────────┬────────────────┬────────────────┐");
                         Console.WriteLine(string.Format(formatoTabla, "Nº", "Hora", "Placa", "Tipo Vehículo", "Conductor", "Cédula", "Destino", "Detalles"));
-                        Console.WriteLine(" ├─────┼──────────┼───────────┼───────────────────┼─────────────────────┼───────────────┼────────────────┼────────────────┤");
+                        Console.WriteLine(" ├─────┼──────────┼───────────┼───────────────────┼─────────────────────┼──────────────────┼────────────────┼────────────────┤");
                         Console.ResetColor();
                     }
                     // 3. Si la fila empieza con un numero, sabemos que el registro del vehiculo
@@ -1317,7 +1341,7 @@ void ModuloAuditoria()
                         string placa = celdas[2].Length > 9 ? celdas[2].Substring(0, 9) : celdas[2].Trim();
                         string tipo = celdas[3].Length > 17 ? celdas[3].Substring(0, 17) : celdas[3].Trim();
                         string conductor = celdas[4].Length > 19 ? celdas[4].Substring(0, 19) : celdas[4].Trim();
-                        string cedula = celdas[5].Length > 13 ? celdas[5].Substring(0, 13) : celdas[5].Trim();
+                        string cedula = celdas[5].Length > 16 ? celdas[5].Substring(0, 16) : celdas[5].Trim();
                         string destino = celdas[6].Length > 14 ? celdas[6].Substring(0, 14) : celdas[6].Trim();
                         string detalles = celdas[7].Length > 14 ? celdas[7].Substring(0, 14) : celdas[7].Trim();
 
@@ -1335,7 +1359,7 @@ void ModuloAuditoria()
                             if (string.IsNullOrWhiteSpace(sigFila) || !int.TryParse(sigCeldas[0], out _))
                             {
                                 Console.ForegroundColor = ConsoleColor.Yellow;
-                                Console.WriteLine(" └─────┴──────────┴───────────┴───────────────────┴─────────────────────┴───────────────┴────────────────┴────────────────┘");
+                                Console.WriteLine(" └─────┴──────────┴───────────┴───────────────────┴─────────────────────┴──────────────────┴────────────────┴────────────────┘");
                                 Console.ResetColor();
                             }
                         }
@@ -1345,7 +1369,7 @@ void ModuloAuditoria()
                     {
                         Console.ForegroundColor = ConsoleColor.White;
                         if (celdas.Length > 1)
-                        {                 
+                        {
                             Console.WriteLine($"  {celdas[0].Trim()} {celdas[1].Trim()}");//Esta linea printea en la pantalla todas las filas que no sean vacios y encabezados.
                         }
                         else
